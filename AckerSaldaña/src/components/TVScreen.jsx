@@ -24,7 +24,7 @@ const TVScreen = () => {
         </div>
 
         {/* Brand badge */}
-        <div className="tv-brand">ZENITH</div>
+        <div className="tv-brand">SPACE X</div>
 
         {/* Control panel */}
         <div className="tv-controls">

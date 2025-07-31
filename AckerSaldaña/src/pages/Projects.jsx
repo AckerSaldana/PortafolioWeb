@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import PersistentTerminal from '../components/PersistentTerminal';
 import ProjectCard from '../components/ProjectCard';
 import CustomCursor from '../components/CustomCursor';
+import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import { useTransition } from '../context/TransitionContext';
 
@@ -256,6 +257,8 @@ const Projects = () => {
           </div>
         </div>
       </motion.div>
+      
+      <Footer />
     </div>
   );
 };

@@ -79,6 +79,7 @@ body {
   mask-composite: exclude;
   opacity: 0.5;
   transition: opacity 0.5s ease;
+  pointer-events: none;
 }
 
 .glass-card::after {
@@ -96,6 +97,7 @@ body {
   );
   transform: rotate(45deg) translateX(-100%);
   transition: transform 1s ease;
+  pointer-events: none;
 }
 
 .group:hover .glass-card::before {
@@ -117,6 +119,7 @@ body {
   );
   opacity: 0;
   transition: opacity 0.5s ease;
+  pointer-events: none;
 }
 
 .group:hover .glass-card-inner-glow {

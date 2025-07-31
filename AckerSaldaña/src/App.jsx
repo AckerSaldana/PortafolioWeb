@@ -6,6 +6,8 @@ import CustomCursor from './components/CustomCursor'
 import Skills from './components/Skills'
 import TVSection from './components/TVSection'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
+import Experience from './components/Experience'
 import Projects from './pages/Projects'
 import { TransitionProvider } from './context/TransitionContext'
 import { motion } from 'framer-motion'
@@ -56,9 +58,12 @@ function HomePage() {
 
       <TVSection />
 
+      <Experience />
+
       {/* Placeholder sections for future content */}
-      <AnimatedSection id="experience" title="Experience Coming Soon" />
       <AnimatedSection id="contact" title="Contact Coming Soon" />
+      
+      <Footer />
     </div>
   )
 }
