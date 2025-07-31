@@ -67,6 +67,9 @@ const Projects = () => {
   ];
 
   useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+    
     // Handle transition from TV
     if (isTransitioning && preserveTerminal) {
       // Terminal is already running from TV, don't reinitialize

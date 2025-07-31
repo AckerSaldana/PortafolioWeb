@@ -56,9 +56,13 @@ function HomePage() {
         <Skills />
       </div>
 
-      <TVSection />
+      <div id="projects">
+        <TVSection />
+      </div>
 
-      <Experience />
+      <div id="experience">
+        <Experience />
+      </div>
 
       {/* Placeholder sections for future content */}
       <AnimatedSection id="contact" title="Contact Coming Soon" />

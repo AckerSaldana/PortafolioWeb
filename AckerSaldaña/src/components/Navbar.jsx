@@ -33,7 +33,7 @@ const Navbar = () => {
       
       // Update active section based on scroll position (only on homepage)
       if (!isProjectsPage) {
-        const sections = navItems.filter(item => !item.isLink).map(item => ({
+        const sections = navItems.map(item => ({
           id: item.id,
           element: document.getElementById(item.id)
         })).filter(item => item.element);

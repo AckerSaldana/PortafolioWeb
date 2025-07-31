@@ -14,7 +14,7 @@ const Experience = () => {
       institution: "University of Hull",
       location: "Hull, United Kingdom",
       period: "2025 - Present",
-      status: "7th Semester Revalidation Program",
+      status: "7th Semester Exchange Program",
       description: "Enrolled in an international exchange program for advanced studies in computer science, focusing on cutting-edge technologies and research methodologies.",
       highlights: [
         "International academic experience",
@@ -52,8 +52,8 @@ const Experience = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.3,
-        delayChildren: 0.2,
+        duration: 0.3,
+        when: "beforeChildren"
       },
     },
   };
@@ -64,31 +64,41 @@ const Experience = () => {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.6,
+        duration: 0.8,
         ease: "easeOut",
+        delay: 0
       },
     },
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, x: -50 },
+    hidden: { opacity: 0, y: 50, scale: 0.9 },
     visible: {
       opacity: 1,
-      x: 0,
+      y: 0,
+      scale: 1,
       transition: {
         duration: 0.8,
-        ease: "easeOut",
+        ease: [0.4, 0.0, 0.2, 1],
+        type: "spring",
+        damping: 20,
+        stiffness: 100
       },
     },
   };
 
   const lineVariants = {
-    hidden: { scaleY: 0 },
+    hidden: { 
+      scaleY: 0,
+      opacity: 0 
+    },
     visible: {
       scaleY: 1,
+      opacity: 1,
       transition: {
-        duration: 1,
+        duration: 0.8,
         ease: "easeOut",
+        opacity: { duration: 0.3 }
       },
     },
   };
@@ -123,13 +133,47 @@ const Experience = () => {
         </motion.div>
 
         {/* Timeline */}
-        <div className="relative">
+        <motion.div 
+          className="relative"
+          initial={{ opacity: 0 }}
+          animate={isVisible ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+        >
           {/* Central timeline line */}
           <motion.div 
             className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#4a9eff]/30 to-transparent"
-            variants={lineVariants}
+            initial={{ scaleY: 0, opacity: 0 }}
+            animate={isVisible ? { scaleY: 1, opacity: 1 } : { scaleY: 0, opacity: 0 }}
+            transition={{ 
+              delay: 0.8,
+              duration: 0.8,
+              ease: "easeOut",
+              opacity: { duration: 0.3 }
+            }}
             style={{ transformOrigin: 'top' }}
           />
+          
+          {/* Traveling light effect */}
+          {isVisible && (
+            <motion.div
+              className="absolute left-8 md:left-1/2 w-px h-20 -translate-x-1/2"
+              initial={{ top: '-10%', opacity: 0 }}
+              animate={{ 
+                top: '110%', 
+                opacity: [0, 1, 1, 0],
+              }}
+              transition={{ 
+                duration: 1,
+                delay: 1,
+                ease: "easeInOut"
+              }}
+              style={{
+                background: 'linear-gradient(to bottom, transparent, #4a9eff, transparent)',
+                filter: 'blur(2px)',
+                boxShadow: '0 0 20px #4a9eff'
+              }}
+            />
+          )}
 
           {/* Experience cards */}
           <div className="space-y-12">
@@ -140,10 +184,24 @@ const Experience = () => {
                 <motion.div
                   key={exp.id}
                   variants={cardVariants}
+                  custom={index}
+                  initial="hidden"
+                  animate={isVisible ? "visible" : "hidden"}
+                  transition={{ delay: index * 0.3 + 1.4 }}
                   className={`relative flex items-center ${isEven ? 'md:justify-start' : 'md:justify-end'}`}
                 >
                   {/* Timeline node */}
-                  <div className="absolute left-8 md:left-1/2 transform -translate-x-1/2 z-20">
+                  <motion.div 
+                    className="absolute left-8 md:left-1/2 transform -translate-x-1/2 z-20"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={isVisible ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
+                    transition={{ 
+                      delay: index * 0.3 + 1.6,
+                      duration: 0.5,
+                      type: "spring",
+                      damping: 15
+                    }}
+                  >
                     <motion.div 
                       className="relative"
                       whileHover={{ scale: 1.2 }}
@@ -185,7 +243,7 @@ const Experience = () => {
                         )}
                       </div>
                     </motion.div>
-                  </div>
+                  </motion.div>
 
                   {/* Content card */}
                   <div className={`w-full md:w-5/12 ${isEven ? 'md:ml-auto md:pl-20' : 'md:mr-auto md:pr-20'} pl-24 md:pl-0 md:pr-0`}>
@@ -262,9 +320,13 @@ const Experience = () => {
           {/* Future indicator */}
           <motion.div 
             className="relative flex items-center justify-center mt-12"
-            initial={{ opacity: 0 }}
-            animate={isVisible ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ delay: 1, duration: 1 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ 
+              delay: experiences.length * 0.3 + 1.8,
+              duration: 0.8,
+              ease: "easeOut"
+            }}
           >
             <div className="absolute left-8 md:left-1/2 transform -translate-x-1/2">
               <motion.div
@@ -276,7 +338,7 @@ const Experience = () => {
               </motion.div>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       </motion.div>
     </section>
   );
