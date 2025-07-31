@@ -78,15 +78,15 @@ const Navbar = () => {
         >
           <div className="relative">
             {/* Animated gradient border */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#4a9eff] via-[#7b61ff] to-[#4a9eff] opacity-20 blur-sm animate-pulse" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#4a9eff] via-[#7b61ff] to-[#4a9eff] opacity-20 blur-sm" />
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#4a9eff] via-[#7b61ff] to-[#4a9eff] opacity-10 animate-gradient" />
             
             {/* Starfield effect */}
             <div className="absolute inset-0 rounded-full overflow-hidden">
-              <div className="absolute top-2 left-10 w-0.5 h-0.5 bg-white/30 rounded-full animate-pulse" />
-              <div className="absolute top-4 right-20 w-0.5 h-0.5 bg-white/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
-              <div className="absolute bottom-3 left-1/3 w-0.5 h-0.5 bg-white/25 rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
-              <div className="absolute top-3 right-1/4 w-0.5 h-0.5 bg-white/20 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+              <div className="absolute top-2 left-10 w-0.5 h-0.5 bg-white/30 rounded-full" />
+              <div className="absolute top-4 right-20 w-0.5 h-0.5 bg-white/20 rounded-full" />
+              <div className="absolute bottom-3 left-1/3 w-0.5 h-0.5 bg-white/25 rounded-full" />
+              <div className="absolute top-3 right-1/4 w-0.5 h-0.5 bg-white/20 rounded-full" />
             </div>
             
             {/* Main navbar container */}
