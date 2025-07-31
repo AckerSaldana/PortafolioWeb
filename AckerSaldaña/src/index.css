@@ -160,6 +160,24 @@ body {
   animation: shimmer 3s ease-in-out infinite;
 }
 
+/* Gradient animation for navbar */
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 4s ease infinite;
+}
+
 /* TV Transition Effects */
 .tv-static {
   animation: tv-static-animation 0.3s steps(10) infinite;

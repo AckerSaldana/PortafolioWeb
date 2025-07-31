@@ -70,72 +70,109 @@ const Navbar = () => {
     <AnimatePresence>
       {isVisible && (
         <motion.nav
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -100, opacity: 0 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="fixed top-0 left-0 right-0 z-50"
+          initial={{ y: -100, opacity: 0, scale: 0.9 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: -100, opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+          className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-5xl"
         >
-          <div className="bg-[#0a0a0a]/80 backdrop-blur-md border-b border-[#2a2a2a]/50">
-            <div className="max-w-7xl mx-auto px-8">
-              <div className="flex items-center justify-between h-16">
+          <div className="relative">
+            {/* Animated gradient border */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#4a9eff] via-[#7b61ff] to-[#4a9eff] opacity-20 blur-sm animate-pulse" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#4a9eff] via-[#7b61ff] to-[#4a9eff] opacity-10 animate-gradient" />
+            
+            {/* Starfield effect */}
+            <div className="absolute inset-0 rounded-full overflow-hidden">
+              <div className="absolute top-2 left-10 w-0.5 h-0.5 bg-white/30 rounded-full animate-pulse" />
+              <div className="absolute top-4 right-20 w-0.5 h-0.5 bg-white/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+              <div className="absolute bottom-3 left-1/3 w-0.5 h-0.5 bg-white/25 rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+              <div className="absolute top-3 right-1/4 w-0.5 h-0.5 bg-white/20 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+            </div>
+            
+            {/* Main navbar container */}
+            <div className="relative bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl shadow-[#4a9eff]/10">
+              <div className="px-8 py-3">
+                <div className="flex items-center justify-between">
                 {/* Logo/Name */}
                 <motion.div
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-3"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <span className="text-[#4a9eff] text-xl">✦</span>
-                  <span className="text-xl font-bold text-white">Acker Saldaña</span>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="relative"
+                  >
+                    <span className="text-[#4a9eff] text-2xl">✦</span>
+                    <div className="absolute inset-0 blur-sm bg-[#4a9eff]/30" />
+                  </motion.div>
+                  <span className="text-lg font-bold text-white">
+                    Acker Saldaña
+                  </span>
                 </motion.div>
 
                 {/* Desktop Navigation */}
-                <div className="hidden md:flex items-center gap-8">
+                <div className="hidden md:flex items-center gap-2">
                   {navItems.map((item) => (
                     item.isLink ? (
-                      <Link
+                      <motion.div
                         key={item.id}
-                        to={item.path}
-                        className={`relative text-sm font-medium transition-colors ${
-                          activeSection === item.id 
-                            ? 'text-[#4a9eff]' 
-                            : 'text-gray-400 hover:text-white'
-                        }`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        <motion.div
-                          whileHover={{ y: -2 }}
-                          whileTap={{ y: 0 }}
+                        <Link
+                          to={item.path}
+                          className="relative group block px-4 py-2 rounded-full transition-all"
                         >
-                          {item.label}
+                          <span className={`relative z-10 text-sm font-medium transition-all ${
+                            activeSection === item.id 
+                              ? 'text-white' 
+                              : 'text-gray-400 group-hover:text-white'
+                          }`}>
+                            {item.label}
+                          </span>
+                          
+                          {/* Active indicator */}
                           {activeSection === item.id && (
                             <motion.div
-                              layoutId="navbar-indicator"
-                              className="absolute -bottom-[21px] left-0 right-0 h-[2px] bg-[#4a9eff]"
-                              transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                              layoutId="navbar-active-pill"
+                              className="absolute inset-0 bg-gradient-to-r from-[#4a9eff]/20 to-[#7b61ff]/20 rounded-full"
+                              transition={{ type: "spring", bounce: 0.25, duration: 0.6 }}
                             />
                           )}
-                        </motion.div>
-                      </Link>
+                          
+                          {/* Hover glow */}
+                          <div className="absolute inset-0 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                      </motion.div>
                     ) : (
                       <motion.button
                         key={item.id}
                         onClick={() => scrollToSection(item.id)}
-                        className={`relative text-sm font-medium transition-colors ${
-                          activeSection === item.id 
-                            ? 'text-[#4a9eff]' 
-                            : 'text-gray-400 hover:text-white'
-                        }`}
-                        whileHover={{ y: -2 }}
-                        whileTap={{ y: 0 }}
+                        className="relative group px-4 py-2 rounded-full transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        {item.label}
+                        <span className={`relative z-10 text-sm font-medium transition-all ${
+                          activeSection === item.id 
+                            ? 'text-white' 
+                            : 'text-gray-400 group-hover:text-white'
+                        }`}>
+                          {item.label}
+                        </span>
+                        
+                        {/* Active indicator */}
                         {activeSection === item.id && (
                           <motion.div
-                            layoutId="navbar-indicator"
-                            className="absolute -bottom-[21px] left-0 right-0 h-[2px] bg-[#4a9eff]"
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            layoutId="navbar-active-pill"
+                            className="absolute inset-0 bg-gradient-to-r from-[#4a9eff]/20 to-[#7b61ff]/20 rounded-full"
+                            transition={{ type: "spring", bounce: 0.25, duration: 0.6 }}
                           />
                         )}
+                        
+                        {/* Hover glow */}
+                        <div className="absolute inset-0 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </motion.button>
                     )
                   ))}
@@ -156,16 +193,17 @@ const Navbar = () => {
                 </button>
               </div>
             </div>
+          </div>
 
             {/* Mobile Menu */}
             <AnimatePresence>
               {isMobileMenuOpen && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
-                  className="md:hidden bg-[#0a0a0a]/95 backdrop-blur-md border-t border-[#2a2a2a]/50"
+                  className="md:hidden absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a]/90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
                 >
                   <div className="px-8 py-4 space-y-4">
                     {navItems.map((item) => (
