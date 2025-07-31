@@ -447,7 +447,7 @@ function Comet({ delay = 3000 }) {
       {showTrail ? (
         // Trail only renders when showTrail is true
         <Trail
-          width={5} // Proportional to comet size
+          width={6.5} // Proportional to comet size
           length={3} // Good length for trail effect
           color={new THREE.Color('#87CEEB')} // Trail color
           attenuation={(t) => {

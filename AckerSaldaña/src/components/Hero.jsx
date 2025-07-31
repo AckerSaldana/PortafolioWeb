@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
+  const navigate = useNavigate();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [showArrow, setShowArrow] = useState(true);
@@ -90,6 +92,7 @@ const Hero = () => {
               whileTap={{ scale: 0.95 }}
               className="px-8 py-3 bg-[#4a9eff] text-[#0a0a0a] font-medium rounded-lg hover:bg-[#3a8eef] transition-colors relative z-20"
               onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => navigate('/projects')}
             >
               View Projects
             </motion.button>

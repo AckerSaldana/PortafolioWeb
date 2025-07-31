@@ -1,9 +1,13 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Hero from './components/Hero'
 import AboutMe from './components/AboutMe'
 import ParticleBackground from './components/ParticleBackground'
 import CustomCursor from './components/CustomCursor'
 import Skills from './components/Skills'
+import TVSection from './components/TVSection'
 import Navbar from './components/Navbar'
+import Projects from './pages/Projects'
+import { TransitionProvider } from './context/TransitionContext'
 import { motion } from 'framer-motion'
 import { useIntersectionObserver } from './hooks/useIntersectionObserver'
 
@@ -33,7 +37,7 @@ function AnimatedSection({ id, title }) {
   );
 }
 
-function App() {
+function HomePage() {
   return (
     <div className="min-h-screen relative">
       <CustomCursor />
@@ -50,11 +54,25 @@ function App() {
         <Skills />
       </div>
 
+      <TVSection />
+
       {/* Placeholder sections for future content */}
-      <AnimatedSection id="projects" title="Projects Coming Soon" />
       <AnimatedSection id="experience" title="Experience Coming Soon" />
       <AnimatedSection id="contact" title="Contact Coming Soon" />
     </div>
+  )
+}
+
+function App() {
+  return (
+    <Router>
+      <TransitionProvider>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/projects" element={<Projects />} />
+        </Routes>
+      </TransitionProvider>
+    </Router>
   )
 }
 

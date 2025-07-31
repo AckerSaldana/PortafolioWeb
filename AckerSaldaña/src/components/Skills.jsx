@@ -135,7 +135,9 @@ const Skills = () => {
               >
                 {/* Category title */}
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-300 uppercase tracking-widest mb-8 flex items-center gap-4">
-                  <span className="w-20 h-[1px] bg-gradient-to-r from-transparent to-[#4a9eff]/30"></span>
+                  <span className="w-20 h-[1px] bg-gradient-to-r from-transparent to-[#4a9eff]/30 relative overflow-hidden">
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-[#4a9eff] to-transparent animate-shimmer"></span>
+                  </span>
                   {category.title}
                 </h3>
 
@@ -151,10 +153,10 @@ const Skills = () => {
                       className="group relative"
                       custom={index}
                     >
-                      <div className="flex items-center gap-4 px-6 py-3 bg-[#1a1a1a]/40 backdrop-blur-sm rounded-full border border-[#2a2a2a]/50 transition-all duration-300 hover:bg-[#1a1a1a]/60 hover:border-[#4a9eff]/30 hover:shadow-lg hover:shadow-[#4a9eff]/5">
+                      <div className="relative flex items-center gap-4 px-6 py-3 rounded-full transition-all duration-500 group-hover:scale-[1.02] glass-card">
                         {/* Icon/Badge */}
                         <div 
-                          className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-12"
+                          className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
                           style={{ 
                             backgroundColor: `${skill.color}15`,
                             color: skill.color,
@@ -170,6 +172,9 @@ const Skills = () => {
                           {skill.name}
                         </span>
 
+                        {/* Inner glow */}
+                        <div className="glass-card-inner-glow" />
+                        
                         {/* Hover glow */}
                         <div 
                           className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
