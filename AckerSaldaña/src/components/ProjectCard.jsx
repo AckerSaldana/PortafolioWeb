@@ -5,139 +5,78 @@ import { HiExternalLink } from 'react-icons/hi';
 
 const ProjectCard = ({ project }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [bootSequence, setBootSequence] = useState([]);
-
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-    // Simulate boot sequence
-    const sequences = [
-      'Initializing...',
-      'Loading modules...',
-      'System ready.',
-    ];
-    
-    sequences.forEach((text, index) => {
-      setTimeout(() => {
-        setBootSequence(prev => [...prev, text]);
-      }, index * 200);
-    });
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    setTimeout(() => setBootSequence([]), 300);
-  };
 
   return (
     <motion.div
-      className="relative bg-black/90 border border-gray-800 rounded-lg overflow-hidden group"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      whileHover={{ scale: 1.02 }}
+      className="relative bg-black border border-[#333333] overflow-hidden font-['JetBrains_Mono'] group"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ borderColor: '#00ff00' }}
       transition={{ duration: 0.2 }}
     >
       {/* Terminal Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-900 border-b border-gray-800">
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-red-500/80"></span>
-          <span className="w-3 h-3 rounded-full bg-yellow-500/80"></span>
-          <span className="w-3 h-3 rounded-full bg-green-500/80"></span>
+      <div className="flex items-center justify-between px-4 py-2 bg-black border-b border-[#333333]">
+        <div className="flex items-center gap-4">
+          <span className="text-[#666666] text-xs">-rwxr-xr-x</span>
+          <span className="text-[#ffb000] text-xs">{project.category}/</span>
         </div>
-        <span className="font-['JetBrains_Mono'] text-xs text-gray-500">
-          {project.category}/
+        <span className="text-[#666666] text-xs">
+          {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         </span>
       </div>
 
-      {/* Project Image / ASCII Art */}
-      <div className="relative h-48 bg-gray-950 overflow-hidden">
-        {project.image ? (
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50">
-            {/* Placeholder for actual image */}
-            <div className="w-full h-full flex items-center justify-center">
-              <pre className="text-[#4aefff] text-xs font-['JetBrains_Mono'] opacity-20">
-{`
-   ╔═══════════════╗
-   ║               ║
-   ║   [PROJECT]   ║
-   ║               ║
-   ╚═══════════════╝
-`}
-              </pre>
-            </div>
-          </div>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <pre className="text-[#4aefff] text-xs font-['JetBrains_Mono']">
-{`
-   ╔═══════════════╗
-   ║               ║
-   ║   [PROJECT]   ║
-   ║               ║
-   ╚═══════════════╝
-`}
-            </pre>
-          </div>
-        )}
-
-        {/* Boot sequence overlay */}
-        {isHovered && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-black/80 flex flex-col justify-end p-4"
-          >
-            {bootSequence.map((text, index) => (
-              <motion.p
-                key={index}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="text-green-400 text-xs font-['JetBrains_Mono']"
-              >
-                {'>'} {text}
-              </motion.p>
-            ))}
-          </motion.div>
-        )}
-      </div>
-
-      {/* Content */}
+      {/* Project Display */}
       <div className="p-4">
-        <h3 className="text-xl font-['JetBrains_Mono'] font-bold text-[#4aefff] mb-2">
-          {project.title}
-        </h3>
-        
-        <p className="text-gray-400 text-sm mb-4 font-['Inter'] leading-relaxed">
-          {project.description}
-        </p>
+        {/* ASCII Art Header */}
+        <pre className="text-[#00ff00] text-xs mb-4 overflow-hidden">
+{`┌─────────────────────────────┐
+│ ${project.title.padEnd(27).slice(0, 27)} │
+└─────────────────────────────┘`}
+        </pre>
 
-        {/* Tech Stack */}
-        <div className="mb-4">
-          <p className="text-xs text-gray-500 font-['JetBrains_Mono'] mb-2">
-            $ stack --list
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {project.tech.map((tech, index) => (
-              <span
-                key={index}
-                className="text-xs px-2 py-1 bg-gray-900 text-green-400 rounded font-['JetBrains_Mono']"
-              >
-                {tech}
-              </span>
-            ))}
+        {/* Project Info */}
+        <div className="space-y-3">
+          {/* Title */}
+          <div>
+            <span className="text-[#666666] text-xs">NAME:</span>
+            <h3 className="text-[#00ff00] text-lg font-bold">{project.title}</h3>
+          </div>
+
+          {/* Description */}
+          <div>
+            <span className="text-[#666666] text-xs">DESC:</span>
+            <p className="text-[#00ff00]/80 text-sm mt-1">
+              {project.description}
+            </p>
+          </div>
+
+          {/* Tech Stack */}
+          <div>
+            <span className="text-[#666666] text-xs">STACK:</span>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {project.tech.map((tech, index) => (
+                <span
+                  key={index}
+                  className="text-xs px-2 py-1 bg-black border border-[#333333] text-[#ffb000]"
+                >
+                  {tech.toLowerCase()}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Links */}
-        <div className="flex gap-4 pt-4 border-t border-gray-800">
+        <div className="mt-4 pt-4 border-t border-[#333333] space-y-2">
           {project.github && (
             <a
               href={project.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-gray-400 hover:text-[#4aefff] transition-colors font-['JetBrains_Mono']"
+              className="flex items-center gap-2 text-xs text-[#00ff00] hover:bg-[#00ff00] hover:text-black px-2 py-1 transition-colors inline-flex"
             >
-              <SiGithub size={16} />
-              <span>{'>'} view_source</span>
+              <span>$</span>
+              <span>git clone {project.title.toLowerCase().replace(/\s+/g, '-')}.git</span>
             </a>
           )}
           {project.demo && (
@@ -145,23 +84,35 @@ const ProjectCard = ({ project }) => {
               href={project.demo}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-gray-400 hover:text-[#4aefff] transition-colors font-['JetBrains_Mono']"
+              className="flex items-center gap-2 text-xs text-[#00ff00] hover:bg-[#00ff00] hover:text-black px-2 py-1 transition-colors inline-flex"
             >
-              <HiExternalLink size={16} />
-              <span>{'>'} live_demo</span>
+              <span>$</span>
+              <span>open {project.title.toLowerCase().replace(/\s+/g, '-')}</span>
             </a>
           )}
         </div>
       </div>
 
-      {/* Glitch effect on hover */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isHovered ? 0.1 : 0 }}
-      >
-        <div className="w-full h-full bg-gradient-to-r from-red-500/20 via-transparent to-blue-500/20 mix-blend-screen" />
-      </motion.div>
+      {/* Hover Effect - Terminal Cursor */}
+      {isHovered && (
+        <motion.div
+          className="absolute bottom-4 right-4"
+          animate={{ opacity: [1, 0] }}
+          transition={{ duration: 0.5, repeat: Infinity }}
+        >
+          <span className="text-[#00ff00] text-xs">_</span>
+        </motion.div>
+      )}
+
+      {/* Scanline Effect */}
+      <div className="absolute inset-0 pointer-events-none opacity-10">
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, #00ff00 2px, #00ff00 4px)',
+          }}
+        />
+      </div>
     </motion.div>
   );
 };

@@ -21,6 +21,7 @@ const Footer = () => {
     { name: 'About', href: '#about', icon: '◆' },
     { name: 'Skills', href: '#skills', icon: '◆' },
     { name: 'Projects', href: '/projects', icon: '◆' },
+    { name: 'Contact', href: '#contact', icon: '◆' },
   ];
 
   const socialLinks = [
@@ -44,9 +45,9 @@ const Footer = () => {
         {isProjectsPage ? (
           // Terminal-style divider for projects page
           <div className="flex items-center justify-center">
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#4aefff]/30 to-transparent"></div>
+            <div className="flex-1 h-px bg-[#333333]"></div>
             <motion.div 
-              className="px-6 font-['JetBrains_Mono'] text-[#4aefff]"
+              className="px-6 font-['JetBrains_Mono'] text-[#00ff00]"
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -54,7 +55,7 @@ const Footer = () => {
                 {`[==============]`}
               </pre>
             </motion.div>
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#4aefff]/30 to-transparent"></div>
+            <div className="flex-1 h-px bg-[#333333]"></div>
           </div>
         ) : (
           // Space-style divider for main page
@@ -86,25 +87,9 @@ const Footer = () => {
                     0deg,
                     transparent,
                     transparent 2px,
-                    rgba(74, 239, 255, 0.1) 2px,
-                    rgba(74, 239, 255, 0.1) 4px
+                    rgba(0, 255, 0, 0.05) 2px,
+                    rgba(0, 255, 0, 0.05) 4px
                   )`
-                }}
-              />
-              <motion.div 
-                className="absolute inset-0 opacity-10"
-                animate={{ 
-                  backgroundPosition: ['0% 0%', '0% 100%'],
-                }}
-                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                style={{
-                  background: `linear-gradient(
-                    180deg,
-                    transparent 0%,
-                    rgba(74, 239, 255, 0.1) 50%,
-                    transparent 100%
-                  )`,
-                  backgroundSize: '100% 200%'
                 }}
               />
             </>
@@ -149,15 +134,16 @@ const Footer = () => {
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
             >
-              <div className={`p-8 rounded-2xl relative overflow-hidden group ${isProjectsPage ? 'bg-black/60 border border-[#4aefff]/30' : 'glass-card'}`} style={{ position: 'relative', zIndex: 10 }}>
+              <div className={`p-8 ${isProjectsPage ? 'bg-black border border-[#333333]' : 'rounded-2xl glass-card'} relative overflow-hidden group`} style={{ position: 'relative', zIndex: 10 }}>
                 {!isProjectsPage && <div className="glass-card-inner-glow pointer-events-none" />}
                 
                 <h3 className="text-white font-['Inter'] text-lg mb-6 flex items-center gap-3">
                   {isProjectsPage ? (
                     <>
-                      <span className="text-[#4aefff] font-['JetBrains_Mono'] text-sm">~/nav$</span>
+                      <span className="text-[#ffb000] font-['JetBrains_Mono'] text-sm">~/nav$</span>
+                      <span className="text-[#00ff00] font-['JetBrains_Mono'] text-sm ml-2">ls</span>
                       <motion.span
-                        className="inline-block w-2 h-4 bg-[#4aefff]"
+                        className="inline-block w-2 h-4 bg-[#00ff00] ml-1"
                         animate={{ opacity: [1, 0] }}
                         transition={{ duration: 0.8, repeat: Infinity }}
                       />
@@ -194,17 +180,17 @@ const Footer = () => {
                         whileHover={{ x: 5 }}
                       >
                         <motion.span 
-                          className={`${isProjectsPage ? 'text-[#4aefff]' : 'text-[#4a9eff]'} text-xs`}
+                          className={`${isProjectsPage ? 'text-[#00ff00]' : 'text-[#4a9eff]'} text-xs`}
                           animate={hoveredLink === link.name ? { rotate: 180 } : { rotate: 0 }}
                           transition={{ duration: 0.3 }}
                         >
-                          {isProjectsPage ? '>' : link.icon}
+                          {isProjectsPage ? '$' : link.icon}
                         </motion.span>
                         <span className="relative">
                           {link.name}
                           {hoveredLink === link.name && (
                             <motion.div
-                              className={`absolute -bottom-1 left-0 right-0 h-px bg-gradient-to-r ${isProjectsPage ? 'from-[#4aefff]' : 'from-[#4a9eff]'} to-transparent`}
+                              className={`absolute -bottom-1 left-0 right-0 h-px ${isProjectsPage ? 'bg-[#00ff00]' : 'bg-gradient-to-r from-[#4a9eff] to-transparent'}`}
                               layoutId="linkUnderline"
                               transition={{ duration: 0.3 }}
                             />
@@ -225,15 +211,16 @@ const Footer = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <div className={`p-8 rounded-2xl relative overflow-hidden group ${isProjectsPage ? 'bg-black/60 border border-[#4aefff]/30' : 'glass-card'}`} style={{ position: 'relative', zIndex: 10 }}>
+              <div className={`p-8 ${isProjectsPage ? 'bg-black border border-[#333333]' : 'rounded-2xl glass-card'} relative overflow-hidden group`} style={{ position: 'relative', zIndex: 10 }}>
                 {!isProjectsPage && <div className="glass-card-inner-glow pointer-events-none" />}
                 
                 <h3 className="text-white font-['Inter'] text-lg mb-6 flex items-center gap-3">
                   {isProjectsPage ? (
                     <>
-                      <span className="text-[#4aefff] font-['JetBrains_Mono'] text-sm">~/connect$</span>
+                      <span className="text-[#ffb000] font-['JetBrains_Mono'] text-sm">~/connect$</span>
+                      <span className="text-[#00ff00] font-['JetBrains_Mono'] text-sm ml-2">ls -la</span>
                       <motion.span
-                        className="inline-block w-2 h-4 bg-[#4aefff]"
+                        className="inline-block w-2 h-4 bg-[#00ff00] ml-1"
                         animate={{ opacity: [1, 0] }}
                         transition={{ duration: 0.8, repeat: Infinity }}
                       />
@@ -276,11 +263,11 @@ const Footer = () => {
                             className={`w-10 h-10 ${isProjectsPage ? 'rounded' : 'rounded-lg'} flex items-center justify-center transition-all duration-300`}
                             style={{ 
                               backgroundColor: hoveredSocial === link.name ? 
-                                (isProjectsPage ? `${link.color}15` : `${link.color}20`) : 
-                                (isProjectsPage ? 'rgba(74, 239, 255, 0.05)' : 'rgba(255, 255, 255, 0.05)'),
+                                (isProjectsPage ? 'rgba(0, 255, 0, 0.1)' : `${link.color}20`) : 
+                                (isProjectsPage ? 'transparent' : 'rgba(255, 255, 255, 0.05)'),
                               border: `1px solid ${hoveredSocial === link.name ? 
-                                (isProjectsPage ? `${link.color}30` : `${link.color}40`) : 
-                                (isProjectsPage ? 'rgba(74, 239, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)')}`,
+                                (isProjectsPage ? '#00ff00' : `${link.color}40`) : 
+                                (isProjectsPage ? '#333333' : 'rgba(255, 255, 255, 0.1)')}`,
                             }}
                             whileHover={{ scale: 1.1 }}
                           >
@@ -309,15 +296,16 @@ const Footer = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
               viewport={{ once: true }}
             >
-              <div className={`p-8 rounded-2xl relative overflow-hidden group ${isProjectsPage ? 'bg-black/60 border border-[#4aefff]/30' : 'glass-card'}`} style={{ position: 'relative', zIndex: 10 }}>
+              <div className={`p-8 ${isProjectsPage ? 'bg-black border border-[#333333]' : 'rounded-2xl glass-card'} relative overflow-hidden group`} style={{ position: 'relative', zIndex: 10 }}>
                 {!isProjectsPage && <div className="glass-card-inner-glow pointer-events-none" />}
                 
                 <h3 className="text-white font-['Inter'] text-lg mb-6 flex items-center gap-3">
                   {isProjectsPage ? (
                     <>
-                      <span className="text-[#4aefff] font-['JetBrains_Mono'] text-sm">~/status$</span>
+                      <span className="text-[#ffb000] font-['JetBrains_Mono'] text-sm">~/status$</span>
+                      <span className="text-[#00ff00] font-['JetBrains_Mono'] text-sm ml-2">uptime</span>
                       <motion.span
-                        className="inline-block w-2 h-4 bg-[#4aefff]"
+                        className="inline-block w-2 h-4 bg-[#00ff00] ml-1"
                         animate={{ opacity: [1, 0] }}
                         transition={{ duration: 0.8, repeat: Infinity }}
                       />
@@ -367,17 +355,17 @@ const Footer = () => {
                   
                   <div className="text-gray-400 font-['JetBrains_Mono'] text-sm space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className={`${isProjectsPage ? 'text-[#4aefff]' : 'text-[#4a9eff]'} text-xs`}>{isProjectsPage ? '>' : '▪'}</span>
+                      <span className={`${isProjectsPage ? 'text-[#00ff00]' : 'text-[#4a9eff]'} text-xs`}>{isProjectsPage ? '-' : '▪'}</span>
                       <span>{isProjectsPage ? 'ver:' : 'Version'} <span className="text-white">1.0.0</span></span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`${isProjectsPage ? 'text-[#4aefff]' : 'text-[#4a9eff]'} text-xs`}>{isProjectsPage ? '>' : '▪'}</span>
+                      <span className={`${isProjectsPage ? 'text-[#00ff00]' : 'text-[#4a9eff]'} text-xs`}>{isProjectsPage ? '-' : '▪'}</span>
                       <span>{isProjectsPage ? 'uptime:' : 'Time'} <span className="text-white">{time.toLocaleTimeString()}</span></span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`${isProjectsPage ? 'text-[#4aefff]' : 'text-[#4a9eff]'} text-xs`}>{isProjectsPage ? '>' : '▪'}</span>
+                      <span className={`${isProjectsPage ? 'text-[#00ff00]' : 'text-[#4a9eff]'} text-xs`}>{isProjectsPage ? '-' : '▪'}</span>
                       <div className="flex items-center gap-2">
-                        <HiOutlineLocationMarker size={14} className={isProjectsPage ? 'text-[#4aefff]' : 'text-[#4a9eff]'} />
+                        <HiOutlineLocationMarker size={14} className={isProjectsPage ? 'text-[#00ff00]' : 'text-[#4a9eff]'} />
                         <span>{isProjectsPage ? 'loc:' : ''} Monterrey, N.L</span>
                       </div>
                     </div>
@@ -390,7 +378,7 @@ const Footer = () => {
 
           {/* Bottom Section */}
           <motion.div 
-            className="mt-16 pt-8 border-t border-white/5"
+            className={`mt-16 pt-8 border-t ${isProjectsPage ? 'border-[#333333]' : 'border-white/5'}`}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
@@ -413,7 +401,7 @@ const Footer = () => {
               {/* Logo */}
               {isProjectsPage ? (
                 <motion.div 
-                  className="font-['JetBrains_Mono'] text-xs text-[#4aefff]/60"
+                  className="font-['JetBrains_Mono'] text-xs text-[#00ff00]/60"
                   animate={{ opacity: [0.6, 1, 0.6] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >

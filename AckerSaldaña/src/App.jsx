@@ -8,6 +8,7 @@ import TVSection from './components/TVSection'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Experience from './components/Experience'
+import Contact from './components/Contact'
 import Projects from './pages/Projects'
 import { TransitionProvider } from './context/TransitionContext'
 import { motion } from 'framer-motion'
@@ -64,8 +65,7 @@ function HomePage() {
         <Experience />
       </div>
 
-      {/* Placeholder sections for future content */}
-      <AnimatedSection id="contact" title="Contact Coming Soon" />
+      <Contact />
       
       <Footer />
     </div>

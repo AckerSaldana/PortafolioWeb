@@ -60,10 +60,10 @@ const Projects = () => {
   ];
 
   const categories = [
-    { id: 'all', name: 'All Projects', command: '> ls -la' },
-    { id: 'web-apps', name: 'Web Applications', command: '> cd /web-apps' },
-    { id: 'tools', name: 'Developer Tools', command: '> cd /tools' },
-    { id: 'experiments', name: 'Experiments', command: '> cd /experiments' }
+    { id: 'all', name: 'All Projects', command: 'ls -la' },
+    { id: 'web-apps', name: 'Web Applications', command: 'cd web-apps/' },
+    { id: 'tools', name: 'Developer Tools', command: 'cd tools/' },
+    { id: 'experiments', name: 'Experiments', command: 'cd experiments/' }
   ];
 
   useEffect(() => {
@@ -131,22 +131,25 @@ const Projects = () => {
             width: '100%', 
             height: '100%',
           }}
-          tint="#4aefff"
-          scanlineIntensity={0.2}
-          glitchAmount={0.8}
-          flickerAmount={0.6}
-          curvature={0.1}
-          chromaticAberration={0.3}
-          mouseReact={true}
-          brightness={0.6}
-          noiseAmp={0.5}
+          tint="#00ff00"
+          scanlineIntensity={0.1}
+          glitchAmount={0.3}
+          flickerAmount={0.2}
+          curvature={0.05}
+          chromaticAberration={0.1}
+          mouseReact={false}
+          brightness={0.3}
+          noiseAmp={0.2}
           digitSize={1.8}
           pageLoadAnimation={false}
         />
       </motion.div>
 
-      {/* Dark overlay for better readability */}
-      <div className="fixed inset-0 bg-black/40 z-[1]" />
+      {/* Solid background for content */}
+      <div className="fixed inset-0 bg-black z-[1]" />
+
+      {/* Terminal Scanline Effect */}
+      <div className="terminal-scanline" />
 
       {/* Content */}
       <motion.div 
@@ -155,87 +158,99 @@ const Projects = () => {
         animate={{ opacity: showContent ? 1 : 0 }}
         transition={{ duration: 0.8 }}
       >
-        {/* Header */}
+        {/* Terminal Header */}
         <motion.header 
-          className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-md border-b border-white/10"
+          className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-[#333333]"
           initial={{ y: -100 }}
           animate={{ y: showContent ? 0 : -100 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <div className="max-w-7xl mx-auto px-8 py-4">
-            <Link to="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
-              <span className="transform group-hover:-translate-x-1 transition-transform">←</span>
-              <span className="font-['JetBrains_Mono'] text-sm">back to main</span>
-            </Link>
+          <div className="max-w-7xl mx-auto px-8 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Link to="/" className="flex items-center gap-2 text-[#00ff00] hover:text-[#00ff00]/80 transition-colors group font-['JetBrains_Mono'] text-sm">
+                  <span className="transform group-hover:-translate-x-1 transition-transform">←</span>
+                  <span>cd ..</span>
+                </Link>
+                <span className="text-[#666666] font-['JetBrains_Mono'] text-sm">|</span>
+                <span className="text-[#ffb000] font-['JetBrains_Mono'] text-sm">user@portfolio:~/projects$</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-[#00ff00] rounded-full animate-pulse" />
+                <span className="text-[#00ff00] font-['JetBrains_Mono'] text-xs">CONNECTED</span>
+              </div>
+            </div>
           </div>
         </motion.header>
 
         {/* Main Content */}
         <div className="pt-32 px-8 pb-20">
           <div className="max-w-7xl mx-auto">
-            {/* Title with typing effect */}
+            {/* Terminal Title */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: showContent ? 1 : 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="mb-16 relative"
+              className="mb-12 bg-black border border-[#333333] p-6 font-['JetBrains_Mono']"
             >
-              {/* Title background */}
-              <div className="absolute inset-0 -inset-x-8 -inset-y-4 bg-gradient-to-r from-black/90 via-black/80 to-transparent rounded-lg blur-xl" />
-              <div className="relative">
-                <h1 className="text-5xl md:text-7xl font-['JetBrains_Mono'] font-bold mb-4">
-                  <span className="text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">
-                    <span className="text-[#4aefff]">$</span> {typedText}
-                  </span>
-                  <motion.span
-                    animate={{ opacity: [1, 0] }}
-                    transition={{ duration: 0.5, repeat: Infinity }}
-                    className="inline-block w-1 h-14 md:h-16 bg-white ml-3 shadow-[0_0_10px_rgba(255,255,255,0.8)]"
-                  />
-                </h1>
-                <p className="text-gray-300 font-['Inter'] text-lg md:text-xl">
-                  Showcasing my work and experiments
-                </p>
-                <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 font-['JetBrains_Mono']">
-                  <span>// {filteredProjects.length} projects</span>
-                  <span>• {categories.find(c => c.id === filter)?.name || 'All'}</span>
-                </div>
+              <div className="text-[#666666] text-sm mb-2">
+                Last login: {new Date().toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </div>
+              <div className="mb-4">
+                <span className="text-[#ffb000]">user@portfolio</span>
+                <span className="text-[#00ff00]">:</span>
+                <span className="text-[#4a9eff]">~/projects</span>
+                <span className="text-[#00ff00]">$ </span>
+                <span className="text-[#00ff00]">{typedText}</span>
+                <motion.span
+                  animate={{ opacity: [1, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity }}
+                  className="inline-block w-2 h-5 bg-[#00ff00] ml-1"
+                />
+              </div>
+              <div className="text-[#00ff00] text-sm">
+                # Showcasing my work and experiments
+              </div>
+              <div className="mt-2 flex items-center gap-4 text-xs text-[#666666]">
+                <span>total {filteredProjects.length}</span>
+                <span>-rw-r--r--</span>
+                <span>{categories.find(c => c.id === filter)?.name || 'All Projects'}</span>
               </div>
             </motion.div>
 
-            {/* Filter Categories */}
+            {/* Terminal Commands Filter */}
             <motion.div 
-              className="mb-12 flex flex-wrap gap-4"
+              className="mb-12 bg-black border border-[#333333] p-4 font-['JetBrains_Mono']"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: showContent ? 1 : 0, y: showContent ? 0 : 20 }}
               transition={{ duration: 0.5, delay: 0.6 }}
             >
-              {categories.map((category) => (
-                <motion.button
-                  key={category.id}
-                  onClick={() => setFilter(category.id)}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`relative px-6 py-4 font-['JetBrains_Mono'] text-sm rounded-lg transition-all backdrop-blur-md ${
-                    filter === category.id
-                      ? 'bg-white/10 text-white shadow-[0_0_20px_rgba(74,158,255,0.5)]'
-                      : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-                  }`}
-                  style={{
-                    border: filter === category.id ? '1px solid rgba(74, 158, 255, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)',
-                  }}
-                >
-                  <span className="block text-xs text-[#4aefff] mb-1">{category.command}</span>
-                  <span className="block font-semibold">{category.name}</span>
-                  {filter === category.id && (
-                    <motion.div
-                      layoutId="activeFilter"
-                      className="absolute inset-0 bg-gradient-to-r from-[#4aefff]/10 to-transparent rounded-lg -z-10"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                </motion.button>
-              ))}
+              <div className="text-[#666666] text-xs mb-3">SELECT CATEGORY:</div>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((category) => (
+                  <motion.button
+                    key={category.id}
+                    onClick={() => setFilter(category.id)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`px-4 py-2 text-sm transition-all border ${
+                      filter === category.id
+                        ? 'bg-[#00ff00] text-black border-[#00ff00]'
+                        : 'bg-black text-[#00ff00] border-[#333333] hover:border-[#00ff00]'
+                    }`}
+                  >
+                    <span className="text-[#ffb000]">$ </span>
+                    <span>{category.command}</span>
+                    {filter === category.id && (
+                      <motion.span
+                        animate={{ opacity: [1, 0] }}
+                        transition={{ duration: 0.5, repeat: Infinity }}
+                        className="inline-block w-1.5 h-3 bg-black ml-1 align-middle"
+                      />
+                    )}
+                  </motion.button>
+                ))}
+              </div>
             </motion.div>
 
             {/* Projects Grid */}

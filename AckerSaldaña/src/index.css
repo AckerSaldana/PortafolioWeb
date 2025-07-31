@@ -192,6 +192,29 @@ body {
   animation: slow-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Terminal Scanline Effect */
+@keyframes terminal-scanline {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.terminal-scanline {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to bottom, transparent, #00ff00 50%, transparent);
+  opacity: 0.1;
+  animation: terminal-scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 9999;
+}
+
 /* TV Transition Effects */
 .tv-static {
   animation: tv-static-animation 0.3s steps(10) infinite;
