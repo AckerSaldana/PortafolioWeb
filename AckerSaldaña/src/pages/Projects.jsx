@@ -1,19 +1,74 @@
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
-import PersistentTerminal from '../components/PersistentTerminal';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import ProjectCard from '../components/ProjectCard';
 import CustomCursor from '../components/CustomCursor';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import { useTransition } from '../context/TransitionContext';
+import useDevicePerformance from '../hooks/useDevicePerformance';
+import useIsMobile from '../hooks/useIsMobile';
+
+// Lazy load the terminal for better initial page load
+const PersistentTerminal = lazy(() => import('../components/PersistentTerminal'));
+const CSSTerminal = lazy(() => import('../components/CSSTerminal'));
 
 const Projects = () => {
   const { isTransitioning, completeTransition, terminalConfig, preserveTerminal, resetTransition } = useTransition();
+  const { performance } = useDevicePerformance();
+  const isMobile = useIsMobile();
   const [filter, setFilter] = useState('all');
   const [typedText, setTypedText] = useState('');
   const [showContent, setShowContent] = useState(false);
   const [terminalReady, setTerminalReady] = useState(false);
+  const [useLiteMode, setUseLiteMode] = useState(false);
   const fullText = 'Projects';
+  
+  // Get terminal quality settings based on device performance
+  const getTerminalQuality = () => {
+    if (performance === 'low' || isMobile) {
+      return {
+        scanlineIntensity: 0.05,
+        glitchAmount: 0.1,
+        flickerAmount: 0.1,
+        curvature: 0.02,
+        chromaticAberration: 0.05,
+        brightness: 0.4,
+        noiseAmp: 0.1,
+        digitSize: 2.5,
+        dpr: 1,
+        qualityLevel: 0.3
+      };
+    } else if (performance === 'medium') {
+      return {
+        scanlineIntensity: 0.08,
+        glitchAmount: 0.2,
+        flickerAmount: 0.15,
+        curvature: 0.03,
+        chromaticAberration: 0.08,
+        brightness: 0.35,
+        noiseAmp: 0.15,
+        digitSize: 2.0,
+        dpr: 1.5,
+        qualityLevel: 0.6
+      };
+    } else {
+      // High performance - original settings
+      return {
+        scanlineIntensity: 0.1,
+        glitchAmount: 0.3,
+        flickerAmount: 0.2,
+        curvature: 0.05,
+        chromaticAberration: 0.1,
+        brightness: 0.3,
+        noiseAmp: 0.2,
+        digitSize: 1.8,
+        dpr: 2,
+        qualityLevel: 1.0
+      };
+    }
+  };
+  
+  const terminalQuality = getTerminalQuality();
   
   // Sample projects data - replace with your actual projects
   const projects = [
@@ -70,6 +125,12 @@ const Projects = () => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
     
+    // Check localStorage for lite mode preference
+    const savedLiteMode = localStorage.getItem('terminal-lite-mode');
+    if (savedLiteMode === 'true' || performance === 'low') {
+      setUseLiteMode(true);
+    }
+    
     // Handle transition from TV
     if (isTransitioning && preserveTerminal) {
       // Terminal is already running from TV, don't reinitialize
@@ -108,7 +169,7 @@ const Projects = () => {
         resetTransition();
       }
     };
-  }, [isTransitioning, completeTransition, preserveTerminal, resetTransition]);
+  }, [isTransitioning, completeTransition, preserveTerminal, resetTransition, performance]);
 
   const filteredProjects = filter === 'all' 
     ? projects 
@@ -124,25 +185,46 @@ const Projects = () => {
         initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
       >
-        <PersistentTerminal
-          terminalKey={preserveTerminal ? "tv-terminal" : "projects-terminal"}
-          scale={1}
-          containerStyle={{ 
-            width: '100%', 
-            height: '100%',
-          }}
-          tint="#00ff00"
-          scanlineIntensity={0.1}
-          glitchAmount={0.3}
-          flickerAmount={0.2}
-          curvature={0.05}
-          chromaticAberration={0.1}
-          mouseReact={false}
-          brightness={0.3}
-          noiseAmp={0.2}
-          digitSize={1.8}
-          pageLoadAnimation={false}
-        />
+        <Suspense fallback={
+          <div className="w-full h-full bg-black relative overflow-hidden">
+            {/* Simple CSS terminal effect while loading */}
+            <div className="absolute inset-0" style={{
+              background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, #00ff00 2px, #00ff00 3px)',
+              opacity: 0.03
+            }} />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-[#00ff00] font-['JetBrains_Mono'] text-sm animate-pulse">
+                INITIALIZING TERMINAL...
+              </div>
+            </div>
+          </div>
+        }>
+          {useLiteMode ? (
+            <CSSTerminal tint="#00ff00" />
+          ) : (
+            <PersistentTerminal
+              terminalKey={preserveTerminal ? "tv-terminal" : "projects-terminal"}
+              scale={1}
+              containerStyle={{ 
+                width: '100%', 
+                height: '100%',
+              }}
+              tint="#00ff00"
+              scanlineIntensity={terminalQuality.scanlineIntensity}
+              glitchAmount={terminalQuality.glitchAmount}
+              flickerAmount={terminalQuality.flickerAmount}
+              curvature={terminalQuality.curvature}
+              chromaticAberration={terminalQuality.chromaticAberration}
+              mouseReact={false}
+              brightness={terminalQuality.brightness}
+              noiseAmp={terminalQuality.noiseAmp}
+              digitSize={terminalQuality.digitSize}
+              dpr={terminalQuality.dpr}
+              qualityLevel={terminalQuality.qualityLevel}
+              pageLoadAnimation={false}
+            />
+          )}
+        </Suspense>
       </motion.div>
 
       {/* Solid background for content */}
@@ -175,9 +257,23 @@ const Projects = () => {
                 <span className="text-[#666666] font-['JetBrains_Mono'] text-sm">|</span>
                 <span className="text-[#ffb000] font-['JetBrains_Mono'] text-sm">user@portfolio:~/projects$</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-[#00ff00] rounded-full animate-pulse" />
-                <span className="text-[#00ff00] font-['JetBrains_Mono'] text-xs">CONNECTED</span>
+              <div className="flex items-center gap-4">
+                {/* Performance Mode Toggle */}
+                <button
+                  onClick={() => {
+                    const newLiteMode = !useLiteMode;
+                    setUseLiteMode(newLiteMode);
+                    localStorage.setItem('terminal-lite-mode', newLiteMode.toString());
+                  }}
+                  className="text-[#00ff00] font-['JetBrains_Mono'] text-xs hover:text-[#00ff00]/80 transition-colors"
+                  title={useLiteMode ? "Switch to Full Terminal" : "Switch to Lite Mode"}
+                >
+                  [{useLiteMode ? 'LITE' : 'FULL'}]
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-[#00ff00] rounded-full animate-pulse" />
+                  <span className="text-[#00ff00] font-['JetBrains_Mono'] text-xs">CONNECTED</span>
+                </div>
               </div>
             </div>
           </div>
@@ -265,7 +361,10 @@ const Projects = () => {
                   key={project.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: showContent ? 1 : 0, y: showContent ? 0 : 20 }}
-                  transition={{ duration: 0.5, delay: 0.8 + (0.1 * index) }}
+                  transition={{ 
+                    duration: 0.5, 
+                    delay: showContent ? 0.8 + Math.min(0.05 * index, 0.2) : 0 // Cap delay to prevent long waits
+                  }}
                 >
                   <ProjectCard project={project} />
                 </motion.div>

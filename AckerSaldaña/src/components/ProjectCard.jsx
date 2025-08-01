@@ -95,13 +95,9 @@ const ProjectCard = ({ project }) => {
 
       {/* Hover Effect - Terminal Cursor */}
       {isHovered && (
-        <motion.div
-          className="absolute bottom-4 right-4"
-          animate={{ opacity: [1, 0] }}
-          transition={{ duration: 0.5, repeat: Infinity }}
-        >
-          <span className="text-[#00ff00] text-xs">_</span>
-        </motion.div>
+        <div className="absolute bottom-4 right-4">
+          <span className="text-[#00ff00] text-xs animate-pulse">_</span>
+        </div>
       )}
 
       {/* Scanline Effect */}

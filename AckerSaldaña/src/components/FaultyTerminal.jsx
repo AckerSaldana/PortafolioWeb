@@ -37,6 +37,7 @@ uniform float uUseMouse;
 uniform float uPageLoadProgress;
 uniform float uUsePageLoadAnimation;
 uniform float uBrightness;
+uniform float uQualityLevel;
 
 float time;
 
@@ -64,18 +65,27 @@ float fbm(vec2 p)
   float f = 0.0;
   float amp = 0.5 * uNoiseAmp;
   
+  // Low quality: 1 iteration
   mat2 modify0 = rotate(time * 0.02);
   f += amp * noise(p);
-  p = modify0 * p * 2.0;
-  amp *= 0.454545; // 1/2.2
   
-  mat2 modify1 = rotate(time * 0.02);
-  f += amp * noise(p);
-  p = modify1 * p * 2.0;
-  amp *= 0.454545;
+  // Medium quality: 2 iterations
+  if (uQualityLevel > 0.5) {
+    p = modify0 * p * 2.0;
+    amp *= 0.454545; // 1/2.2
+    
+    mat2 modify1 = rotate(time * 0.02);
+    f += amp * noise(p);
+  }
   
-  mat2 modify2 = rotate(time * 0.08);
-  f += amp * noise(p);
+  // High quality: 3 iterations
+  if (uQualityLevel > 0.8) {
+    p = modify1 * p * 2.0;
+    amp *= 0.454545;
+    
+    mat2 modify2 = rotate(time * 0.08);
+    f += amp * noise(p);
+  }
   
   return f;
 }
@@ -190,7 +200,7 @@ void main() {
     vec2 p = uv * uScale;
     vec3 col = getColor(p);
 
-    if(uChromaticAberration != 0.0){
+    if(uChromaticAberration != 0.0 && uQualityLevel > 0.3){
       vec2 ca = vec2(uChromaticAberration) / iResolution.xy;
       col.r = getColor(p + ca).r;
       col.b = getColor(p - ca).b;
@@ -242,6 +252,7 @@ export default function FaultyTerminal({
   dpr = Math.min(window.devicePixelRatio || 1, 2),
   pageLoadAnimation = true,
   brightness = 1,
+  qualityLevel = 1, // 0-1, where 1 is highest quality
   className,
   style,
   ...rest
@@ -318,6 +329,7 @@ export default function FaultyTerminal({
         uPageLoadProgress: { value: pageLoadAnimation ? 0 : 1 },
         uUsePageLoadAnimation: { value: pageLoadAnimation ? 1 : 0 },
         uBrightness: { value: brightness },
+        uQualityLevel: { value: qualityLevel },
       },
     });
     programRef.current = program;
