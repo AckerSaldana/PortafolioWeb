@@ -386,8 +386,8 @@ export default function FaultyTerminal({
         mouseUniform[1] = smoothMouse.y;
       }
 
-      if (meshRef.current) {
-        renderer.render({ scene: meshRef.current });
+      if (meshRef.current && renderer) {
+        renderer.render();
       }
     };
     rafRef.current = requestAnimationFrame(update);
