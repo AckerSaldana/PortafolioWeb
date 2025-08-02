@@ -73,7 +73,7 @@ const ProjectCard = ({ project }) => {
               href={project.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-xs text-[#00ff00] hover:bg-[#00ff00] hover:text-black px-2 py-1 transition-colors inline-flex"
+              className="cursor-target flex items-center gap-2 text-xs text-[#00ff00] hover:bg-[#00ff00] hover:text-black px-2 py-1 transition-colors inline-flex"
             >
               <span>$</span>
               <span>git clone {project.title.toLowerCase().replace(/\s+/g, '-')}.git</span>
@@ -84,7 +84,7 @@ const ProjectCard = ({ project }) => {
               href={project.demo}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-xs text-[#00ff00] hover:bg-[#00ff00] hover:text-black px-2 py-1 transition-colors inline-flex"
+              className="cursor-target flex items-center gap-2 text-xs text-[#00ff00] hover:bg-[#00ff00] hover:text-black px-2 py-1 transition-colors inline-flex"
             >
               <span>$</span>
               <span>open {project.title.toLowerCase().replace(/\s+/g, '-')}</span>

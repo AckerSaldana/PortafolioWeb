@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import ProjectCard from '../components/ProjectCard';
-import CustomCursor from '../components/CustomCursor';
+import TargetCursor from '../components/TargetCursor';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import { useTransition } from '../context/TransitionContext';
@@ -74,43 +74,53 @@ const Projects = () => {
   const projects = [
     {
       id: 1,
-      title: 'E-Commerce Platform',
+      title: 'PathExplorer - AI Talent Platform',
       category: 'web-apps',
-      description: 'Full-stack e-commerce solution with React, Node.js, and PostgreSQL',
-      tech: ['React', 'Node.js', 'PostgreSQL', 'Stripe API'],
-      github: 'https://github.com/yourusername/project',
-      demo: 'https://demo.com',
+      description: 'AI-powered talent management system with CV parsing, smart project matching, and workforce analytics',
+      tech: ['React', 'Node.js', 'Supabase', 'OpenAI GPT', 'Material UI'],
+      github: 'https://github.com/AckerSaldana/AMPL',
+      demo: null,
       image: '/project1.png'
     },
     {
       id: 2,
-      title: 'Task Management System',
+      title: 'Aylinn Carré Portfolio',
       category: 'web-apps',
-      description: 'Collaborative task management tool with real-time updates',
-      tech: ['Next.js', 'Socket.io', 'MongoDB', 'JWT'],
-      github: 'https://github.com/yourusername/project',
-      demo: 'https://demo.com',
+      description: 'Industrial design portfolio with sketch-style UI, dynamic gallery filtering, and Firebase-powered admin panel',
+      tech: ['React 18', 'Firebase', 'Material-UI', 'Vite', 'Custom CSS'],
+      github: 'https://github.com/AckerSaldana/AylinnCarre',
+      demo: 'https://aylinncarre.com',
       image: '/project2.png'
     },
     {
       id: 3,
+      title: 'Sidney Kylie Architecture Portfolio',
+      category: 'web-apps',
+      description: 'Minimalist architect portfolio with circular transitions, parallax effects, and Apple-style scroll animations',
+      tech: ['React', 'React Router', 'CSS Modules', 'Custom Animations'],
+      github: 'https://github.com/AckerSaldana/SidneyKylie',
+      demo: 'https://sidneykylie-d4e5e.web.app',
+      image: '/project3.png'
+    },
+    {
+      id: 4,
       title: 'CLI Development Tool',
       category: 'tools',
       description: 'Command-line tool for automating development workflows',
       tech: ['Python', 'Click', 'Docker'],
       github: 'https://github.com/yourusername/project',
       demo: null,
-      image: '/project3.png'
+      image: '/project4.png'
     },
     {
-      id: 4,
+      id: 5,
       title: '3D Portfolio Visualizer',
       category: 'experiments',
       description: 'Interactive 3D visualization of portfolio projects using Three.js',
       tech: ['Three.js', 'React Three Fiber', 'GLSL'],
       github: 'https://github.com/yourusername/project',
       demo: 'https://demo.com',
-      image: '/project4.png'
+      image: '/project5.png'
     }
   ];
 
@@ -177,7 +187,7 @@ const Projects = () => {
 
   return (
     <div className="min-h-screen relative">
-      <CustomCursor />
+      <TargetCursor />
       
       {/* Terminal Background */}
       <motion.div 
@@ -265,7 +275,7 @@ const Projects = () => {
                     setUseLiteMode(newLiteMode);
                     localStorage.setItem('terminal-lite-mode', newLiteMode.toString());
                   }}
-                  className="text-[#00ff00] font-['JetBrains_Mono'] text-xs hover:text-[#00ff00]/80 transition-colors"
+                  className="cursor-target text-[#00ff00] font-['JetBrains_Mono'] text-xs hover:text-[#00ff00]/80 transition-colors"
                   title={useLiteMode ? "Switch to Full Terminal" : "Switch to Lite Mode"}
                 >
                   [{useLiteMode ? 'LITE' : 'FULL'}]
@@ -329,7 +339,7 @@ const Projects = () => {
                     onClick={() => setFilter(category.id)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`px-4 py-2 text-sm transition-all border ${
+                    className={`cursor-target px-4 py-2 text-sm transition-all border ${
                       filter === category.id
                         ? 'bg-[#00ff00] text-black border-[#00ff00]'
                         : 'bg-black text-[#00ff00] border-[#333333] hover:border-[#00ff00]'

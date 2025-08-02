@@ -13,7 +13,7 @@ const Navbar = () => {
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },
     { id: 'skills', label: 'Skills' },
-    { id: 'projects', label: 'Projects', isLink: true, path: '/projects' },
+    { id: 'projects', label: 'Projects' },
     { id: 'experience', label: 'Experience' },
     { id: 'contact', label: 'Contact' },
   ];
@@ -115,73 +115,40 @@ const Navbar = () => {
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center gap-2">
                   {navItems.map((item) => (
-                    item.isLink ? (
-                      <motion.div
-                        key={item.id}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Link
-                          to={item.path}
-                          className="relative group block px-4 py-2 rounded-full transition-all"
-                        >
-                          <span className={`relative z-10 text-sm font-medium transition-all ${
-                            activeSection === item.id 
-                              ? 'text-white' 
-                              : 'text-gray-400 group-hover:text-white'
-                          }`}>
-                            {item.label}
-                          </span>
-                          
-                          {/* Active indicator */}
-                          {activeSection === item.id && (
-                            <motion.div
-                              layoutId="navbar-active-pill"
-                              className="absolute inset-0 bg-gradient-to-r from-[#4a9eff]/20 to-[#7b61ff]/20 rounded-full"
-                              transition={{ type: "spring", bounce: 0.25, duration: 0.6 }}
-                            />
-                          )}
-                          
-                          {/* Hover glow */}
-                          <div className="absolute inset-0 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </Link>
-                      </motion.div>
-                    ) : (
-                      <motion.button
-                        key={item.id}
-                        onClick={() => scrollToSection(item.id)}
-                        className="relative group px-4 py-2 rounded-full transition-all"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <span className={`relative z-10 text-sm font-medium transition-all ${
-                          activeSection === item.id 
-                            ? 'text-white' 
-                            : 'text-gray-400 group-hover:text-white'
-                        }`}>
-                          {item.label}
-                        </span>
-                        
-                        {/* Active indicator */}
-                        {activeSection === item.id && (
-                          <motion.div
-                            layoutId="navbar-active-pill"
-                            className="absolute inset-0 bg-gradient-to-r from-[#4a9eff]/20 to-[#7b61ff]/20 rounded-full"
-                            transition={{ type: "spring", bounce: 0.25, duration: 0.6 }}
-                          />
-                        )}
-                        
-                        {/* Hover glow */}
-                        <div className="absolute inset-0 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </motion.button>
-                    )
+                    <motion.button
+                      key={item.id}
+                      onClick={() => scrollToSection(item.id)}
+                      className="cursor-target relative group px-4 py-2 rounded-full transition-all"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <span className={`relative z-10 text-sm font-medium transition-all ${
+                        activeSection === item.id 
+                          ? 'text-white' 
+                          : 'text-gray-400 group-hover:text-white'
+                      }`}>
+                        {item.label}
+                      </span>
+                      
+                      {/* Active indicator */}
+                      {activeSection === item.id && (
+                        <motion.div
+                          layoutId="navbar-active-pill"
+                          className="absolute inset-0 bg-gradient-to-r from-[#4a9eff]/20 to-[#7b61ff]/20 rounded-full"
+                          transition={{ type: "spring", bounce: 0.25, duration: 0.6 }}
+                        />
+                      )}
+                      
+                      {/* Hover glow */}
+                      <div className="absolute inset-0 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </motion.button>
                   ))}
                 </div>
 
                 {/* Mobile Menu Button */}
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="md:hidden text-gray-400 hover:text-white transition-colors"
+                  className="cursor-target md:hidden text-gray-400 hover:text-white transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     {isMobileMenuOpen ? (
@@ -207,32 +174,17 @@ const Navbar = () => {
                 >
                   <div className="px-8 py-4 space-y-4">
                     {navItems.map((item) => (
-                      item.isLink ? (
-                        <Link
-                          key={item.id}
-                          to={item.path}
-                          className={`block w-full text-left py-2 text-sm font-medium transition-colors ${
-                            activeSection === item.id 
-                              ? 'text-[#4a9eff]' 
-                              : 'text-gray-400 hover:text-white'
-                          }`}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          {item.label}
-                        </Link>
-                      ) : (
-                        <button
-                          key={item.id}
-                          onClick={() => scrollToSection(item.id)}
-                          className={`block w-full text-left py-2 text-sm font-medium transition-colors ${
-                            activeSection === item.id 
-                              ? 'text-[#4a9eff]' 
-                              : 'text-gray-400 hover:text-white'
-                          }`}
-                        >
-                          {item.label}
-                        </button>
-                      )
+                      <button
+                        key={item.id}
+                        onClick={() => scrollToSection(item.id)}
+                        className={`cursor-target block w-full text-left py-2 text-sm font-medium transition-colors ${
+                          activeSection === item.id 
+                            ? 'text-[#4a9eff]' 
+                            : 'text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
                     ))}
                   </div>
                 </motion.div>

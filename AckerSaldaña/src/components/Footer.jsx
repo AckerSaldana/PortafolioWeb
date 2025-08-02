@@ -176,7 +176,7 @@ const Footer = () => {
                         onClick={(e) => scrollToSection(e, link.href)}
                         onMouseEnter={() => setHoveredLink(link.name)}
                         onMouseLeave={() => setHoveredLink(null)}
-                        className="text-gray-400 hover:text-white transition-all font-['Inter'] text-sm flex items-center gap-3 group relative z-20 cursor-pointer"
+                        className="cursor-target text-gray-400 hover:text-white transition-all font-['Inter'] text-sm flex items-center gap-3 group relative z-20 cursor-pointer"
                         whileHover={{ x: 5 }}
                       >
                         <motion.span 
@@ -256,7 +256,7 @@ const Footer = () => {
                           rel="noopener noreferrer"
                           onMouseEnter={() => setHoveredSocial(link.name)}
                           onMouseLeave={() => setHoveredSocial(null)}
-                          className="flex items-center gap-4 group relative z-20 cursor-pointer"
+                          className="cursor-target flex items-center gap-4 group relative z-20 cursor-pointer"
                           whileHover={{ x: 5 }}
                         >
                           <motion.div

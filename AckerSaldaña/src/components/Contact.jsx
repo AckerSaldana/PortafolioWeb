@@ -240,8 +240,8 @@ const Contact = () => {
                   {/* Submit Button */}
                   <motion.button
                     type="submit"
+                    className="cursor-target w-full py-4 bg-gradient-to-r from-[#4a9eff] to-[#7b61ff] text-white font-semibold rounded-lg relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isSubmitting}
-                    className="w-full py-4 bg-gradient-to-r from-[#4a9eff] to-[#7b61ff] text-white font-semibold rounded-lg relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -303,7 +303,7 @@ const Contact = () => {
                     <span className="text-white font-['JetBrains_Mono'] flex-1">{email}</span>
                     <motion.button
                       onClick={copyEmail}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                      className="cursor-target p-2 hover:bg-white/10 rounded-lg transition-colors"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -333,7 +333,7 @@ const Contact = () => {
                           href={link.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-4 bg-black/30 rounded-lg border border-white/10 hover:border-[#4a9eff]/50 transition-all group"
+                          className="cursor-target flex items-center gap-3 p-4 bg-black/30 rounded-lg border border-white/10 hover:border-[#4a9eff]/50 transition-all group"
                           whileHover={{ scale: 1.05, y: -2 }}
                           whileTap={{ scale: 0.95 }}
                         >

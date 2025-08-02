@@ -25,6 +25,32 @@ body {
   cursor: none !important;
 }
 
+/* Custom cursor styles */
+.cursor-outer {
+  transform-origin: center;
+}
+
+.cursor-inner {
+  transform-origin: center;
+}
+
+.cursor-outer.cursor-hover {
+  transform: scale(1.5) !important;
+  border-width: 2px !important;
+}
+
+.cursor-inner.cursor-hover {
+  opacity: 0.8 !important;
+}
+
+.cursor-outer.cursor-click {
+  transform: scale(0.8) !important;
+}
+
+.cursor-inner.cursor-click {
+  transform: scale(0.5) !important;
+}
+
 ::selection {
   background-color: rgba(74, 158, 255, 0.3);
   color: var(--color-pearl);

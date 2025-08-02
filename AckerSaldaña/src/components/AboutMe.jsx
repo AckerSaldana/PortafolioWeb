@@ -114,10 +114,16 @@ const AboutMe = () => {
               variants={buttonVariants}
               className="flex gap-4 pt-4"
             >
-              <button className="px-6 py-2 bg-[#4a9eff]/10 text-[#4a9eff] border border-[#4a9eff]/30 rounded-lg hover:bg-[#4a9eff]/20 transition-colors">
+              <button 
+                className="cursor-target px-6 py-2 bg-[#4a9eff]/10 text-[#4a9eff] border border-[#4a9eff]/30 rounded-lg hover:bg-[#4a9eff]/20 transition-colors"
+                onClick={() => window.open('https://drive.google.com/file/d/1S6QGyCKlFwG4JYqd4cT0NXxI4rE7ZhB8/view?usp=sharing', '_blank')}
+              >
                 Download CV
               </button>
-              <button className="px-6 py-2 bg-[#4a9eff]/10 text-[#4a9eff] border border-[#4a9eff]/30 rounded-lg hover:bg-[#4a9eff]/20 transition-colors">
+              <button 
+                className="cursor-target px-6 py-2 bg-[#4a9eff]/10 text-[#4a9eff] border border-[#4a9eff]/30 rounded-lg hover:bg-[#4a9eff]/20 transition-colors"
+                onClick={() => window.open('https://github.com/AckerSaldana', '_blank')}
+              >
                 GitHub Profile
               </button>
             </motion.div>

@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 const Hero = () => {
   const navigate = useNavigate();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
   const [showArrow, setShowArrow] = useState(true);
 
   useEffect(() => {
@@ -36,6 +35,7 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, []);
 
+
   return (
     <div className="relative min-h-screen flex flex-col justify-center px-8 overflow-hidden z-10">
       <motion.div
@@ -53,20 +53,8 @@ const Hero = () => {
         >
           <h2 className="text-base font-['JetBrains_Mono'] text-[#4a9eff] mb-4">Hello, I'm</h2>
           
-          <h1 
-            className="text-5xl md:text-7xl font-bold font-['Inter'] mb-6"
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-          >
-            <motion.span
-              className="inline-block"
-              animate={{ 
-                color: isHovering ? '#4a9eff' : '#e0e0e0',
-              }}
-              transition={{ duration: 0.3 }}
-            >
-              Acker Saldaña
-            </motion.span>
+          <h1 className="text-5xl md:text-7xl font-bold font-['Inter'] text-[#e0e0e0] mb-6">
+            Acker Saldaña
           </h1>
 
           <div className="h-16 mb-8 flex items-center">
@@ -90,7 +78,7 @@ const Hero = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-3 bg-[#4a9eff] text-[#0a0a0a] font-medium rounded-lg hover:bg-[#3a8eef] transition-colors relative z-20"
+              className="cursor-target px-8 py-3 bg-[#4a9eff] text-[#0a0a0a] font-medium rounded-lg hover:bg-[#3a8eef] transition-colors relative z-20"
               onMouseDown={(e) => e.stopPropagation()}
               onClick={() => navigate('/projects')}
             >
@@ -100,8 +88,12 @@ const Hero = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-3 border border-[#4a9eff] text-[#4a9eff] font-medium rounded-lg hover:bg-[#4a9eff]/10 transition-colors relative z-20"
+              className="cursor-target px-8 py-3 border border-[#4a9eff] text-[#4a9eff] font-medium rounded-lg hover:bg-[#4a9eff]/10 transition-colors relative z-20"
               onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => {
+                const contactSection = document.getElementById('contact');
+                contactSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
             >
               Contact Me
             </motion.button>
@@ -111,17 +103,20 @@ const Hero = () => {
         <motion.div
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
           animate={{ 
-            y: [0, 10, 0],
+            y: [0, 15, 0],
             opacity: showArrow ? 1 : 0
           }}
           transition={{ 
-            y: { duration: 2, repeat: Infinity },
+            y: { duration: 1.5, repeat: Infinity, ease: "easeInOut" },
             opacity: { duration: 0.3 }
           }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-gray-500">
-            <path d="M12 5V19M12 19L6 13M12 19L18 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-gray-400 text-sm font-['JetBrains_Mono'] uppercase tracking-wider">Scroll</span>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-gray-400">
+              <path d="M12 5V19M12 19L6 13M12 19L18 13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
         </motion.div>
       </div>
     </div>

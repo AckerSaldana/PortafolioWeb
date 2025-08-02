@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Hero from './components/Hero'
 import AboutMe from './components/AboutMe'
 import ParticleBackground from './components/ParticleBackground'
-import CustomCursor from './components/CustomCursor'
+import TargetCursor from './components/TargetCursor'
 import Skills from './components/Skills'
 import TVSection from './components/TVSection'
 import Navbar from './components/Navbar'
@@ -43,7 +43,7 @@ function AnimatedSection({ id, title }) {
 function HomePage() {
   return (
     <div className="min-h-screen relative">
-      <CustomCursor />
+      <TargetCursor />
       <ParticleBackground />
       <Navbar />
       
