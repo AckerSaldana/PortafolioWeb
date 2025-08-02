@@ -260,6 +260,7 @@ export default function FaultyTerminal({
   const containerRef = useRef(null);
   const programRef = useRef(null);
   const rendererRef = useRef(null);
+  const meshRef = useRef(null);
   const mouseRef = useRef({ x: 0.5, y: 0.5 });
   const smoothMouseRef = useRef({ x: 0.5, y: 0.5 });
   const frozenTimeRef = useRef(0);
@@ -335,6 +336,7 @@ export default function FaultyTerminal({
     programRef.current = program;
 
     const mesh = new Mesh(gl, { geometry, program });
+    meshRef.current = mesh;
 
     function resize() {
       if (!ctn || !renderer) return;
@@ -384,7 +386,9 @@ export default function FaultyTerminal({
         mouseUniform[1] = smoothMouse.y;
       }
 
-      renderer.render({ scene: mesh });
+      if (meshRef.current) {
+        renderer.render({ scene: meshRef.current });
+      }
     };
     rafRef.current = requestAnimationFrame(update);
     ctn.appendChild(gl.canvas);

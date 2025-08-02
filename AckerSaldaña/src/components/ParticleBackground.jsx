@@ -306,6 +306,8 @@ function GLTFPlanet({ modelPath, position, scale = 1, orbitRadius, orbitSpeed, i
 function Comet({ delay = 3000 }) {
   const groupRef = useRef();
   const cometRef = useRef();
+  const glowRef = useRef();
+  const outerGlowRef = useRef();
   const [isActive, setIsActive] = useState(false);
   const [showTrail, setShowTrail] = useState(false);
   
@@ -342,7 +344,8 @@ function Comet({ delay = 3000 }) {
     velocityZ: 0,
     currentX: 0,
     currentY: 0,
-    currentZ: 0
+    currentZ: 0,
+    time: 0
   });
   
   const initializeComet = () => {
@@ -364,7 +367,8 @@ function Comet({ delay = 3000 }) {
       curveX: curveStrength, // Add curve to trajectory
       currentX: startPos.x,
       currentY: startPos.y,
-      currentZ: startPos.z
+      currentZ: startPos.z,
+      time: 0
     };
     
     // Set initial position if group exists
@@ -396,8 +400,11 @@ function Comet({ delay = 3000 }) {
   useFrame((state, delta) => {
     if (!groupRef.current || !isActive) return;
     
+    // Update time
+    cometData.current.time += delta;
+    const time = cometData.current.time;
+    
     // Update position with curve
-    const time = state.clock.elapsedTime;
     cometData.current.currentX += cometData.current.velocityX * delta;
     cometData.current.currentY += cometData.current.velocityY * delta;
     cometData.current.currentZ += cometData.current.velocityZ * delta;
@@ -416,10 +423,33 @@ function Comet({ delay = 3000 }) {
       cometData.current.currentZ
     );
     
-    // Rotate comet core
+    // Animate comet core with pulsation
     if (cometRef.current) {
       cometRef.current.rotation.x += delta * 4;
       cometRef.current.rotation.y += delta * 3;
+      // Pulsating size effect
+      const pulseFactor = 1 + Math.sin(time * 8) * 0.15;
+      cometRef.current.scale.setScalar(pulseFactor);
+      
+      // Animate emissive intensity
+      if (cometRef.current.material) {
+        cometRef.current.material.emissiveIntensity = 2 + Math.sin(time * 10) * 0.5;
+      }
+    }
+    
+    // Animate glow layers
+    if (glowRef.current) {
+      glowRef.current.rotation.z -= delta * 2;
+      const glowPulse = 1 + Math.sin(time * 6 + 0.5) * 0.2;
+      glowRef.current.scale.setScalar(glowPulse);
+      
+      // Keep white color, no color animation needed
+    }
+    
+    if (outerGlowRef.current) {
+      outerGlowRef.current.rotation.z += delta * 1.5;
+      const outerPulse = 1 + Math.sin(time * 4 + 1) * 0.1;
+      outerGlowRef.current.scale.setScalar(outerPulse);
     }
     
     // Reset when out of view
@@ -442,39 +472,105 @@ function Comet({ delay = 3000 }) {
   // Don't render until active
   if (!isActive) return null;
 
+  // White gradient for trail
+  const trailGradient = [
+    new THREE.Color('#ffffff'), // Bright white
+    new THREE.Color('#f0f0f0'), // Slightly dimmer white
+    new THREE.Color('#e0e0e0'), // Light gray
+    new THREE.Color('#d0d0d0'), // Lighter gray
+    new THREE.Color('#c0c0c0')  // Light gray fade
+  ];
+
   return (
     <group ref={groupRef}>
       {showTrail ? (
-        // Trail only renders when showTrail is true
+        // Enhanced trail with gradient colors
         <Trail
-          width={6.5} // Proportional to comet size
-          length={3} // Good length for trail effect
-          color={new THREE.Color('#87CEEB')} // Trail color
+          width={8} // Wider trail for fire effect
+          length={4} // Longer trail
+          color={trailGradient} // Gradient colors
           attenuation={(t) => {
-            return t * 0.7 + 0.2; // Start at 20% width (closer to comet size), taper to full point
+            // More organic attenuation with flickering
+            const flicker = 1 + Math.sin(t * Math.PI * 4) * 0.1;
+            return (t * 0.8 + 0.2) * flicker;
           }}
-          target={groupRef} // Target to follow
-          interval={1} // Trail sampling interval
+          target={groupRef}
+          interval={1}
         >
-          {/* Simple comet using Sphere from drei */}
-          <Sphere ref={cometRef} args={[0.15, 16, 16]}>
-            <meshBasicMaterial 
-              color="#ffffff" 
-              toneMapped={false}
-            />
-          </Sphere>
+          {/* Multi-layered comet core */}
+          <group>
+            {/* Inner hot core */}
+            <Sphere ref={cometRef} args={[0.12, 32, 32]}>
+              <meshStandardMaterial 
+                color="#ffffff"
+                emissive="#ffffff"
+                emissiveIntensity={2}
+                toneMapped={false}
+              />
+            </Sphere>
+            
+            {/* Middle glow layer */}
+            <Sphere ref={glowRef} args={[0.18, 24, 24]}>
+              <meshStandardMaterial
+                color="#ffffff"
+                emissive="#f0f0f0"
+                emissiveIntensity={1.2}
+                transparent={true}
+                opacity={0.5}
+                roughness={0}
+                metalness={0}
+              />
+            </Sphere>
+            
+            {/* Outer glow */}
+            <Sphere ref={outerGlowRef} args={[0.25, 16, 16]}>
+              <meshBasicMaterial
+                color="#e0e0e0"
+                transparent={true}
+                opacity={0.2}
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+              />
+            </Sphere>
+          </group>
         </Trail>
       ) : (
         // Render without trail initially
-        <>
-          {/* Simple comet using Sphere from drei */}
-          <Sphere ref={cometRef} args={[0.15, 16, 16]}>
-            <meshBasicMaterial 
-              color="#ffffff" 
+        <group>
+          {/* Inner hot core */}
+          <Sphere ref={cometRef} args={[0.12, 32, 32]}>
+            <meshStandardMaterial 
+              color="#ffffff"
+              emissive="#ffffff"
+              emissiveIntensity={2}
               toneMapped={false}
             />
           </Sphere>
-        </>
+          
+          {/* Middle glow layer */}
+          <Sphere ref={glowRef} args={[0.18, 24, 24]}>
+            <meshStandardMaterial
+              color="#ffffff"
+              emissive="#f0f0f0"
+              emissiveIntensity={1.2}
+              transparent={true}
+              opacity={0.5}
+              roughness={0}
+              metalness={0}
+            />
+          </Sphere>
+          
+          {/* Outer glow */}
+          <Sphere ref={outerGlowRef} args={[0.25, 16, 16]}>
+            <meshBasicMaterial
+              color="#e0e0e0"
+              transparent={true}
+              opacity={0.2}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </Sphere>
+        </group>
       )}
     </group>
   );
