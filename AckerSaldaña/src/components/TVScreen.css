@@ -1,20 +1,24 @@
-/* TV Container */
+/* TV Container - Responsive sizing */
 .tv-container {
   position: relative;
-  width: 500px;
-  height: 400px;
+  width: clamp(280px, 90vw, 500px);
+  height: clamp(224px, 72vw, 400px);
   margin: 0 auto;
   transform-style: preserve-3d;
   perspective: 1000px;
 }
 
-/* TV Frame */
+/* TV Frame - Responsive insets */
 .tv-frame {
   position: absolute;
-  inset: -40px -50px -80px -50px;
+  inset:
+    clamp(-25px, -6vw, -40px)
+    clamp(-30px, -8vw, -50px)
+    clamp(-50px, -12vw, -80px)
+    clamp(-30px, -8vw, -50px);
   background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
-  border-radius: 20px;
-  box-shadow: 
+  border-radius: clamp(12px, 3vw, 20px);
+  box-shadow:
     inset 0 2px 4px rgba(255, 255, 255, 0.1),
     inset 0 -2px 4px rgba(0, 0, 0, 0.5),
     0 20px 40px rgba(0, 0, 0, 0.5),
@@ -124,14 +128,14 @@
   pointer-events: auto;
 }
 
-/* Button Container */
+/* Button Container - Responsive */
 .tv-button-container {
   text-align: center;
-  padding: 2.5rem;
+  padding: clamp(1rem, 4vw, 2.5rem);
   background: rgba(0, 0, 0, 0.95);
-  border-radius: 16px;
+  border-radius: clamp(10px, 2.5vw, 16px);
   backdrop-filter: blur(20px);
-  box-shadow: 
+  box-shadow:
     0 0 80px rgba(74, 158, 255, 0.6),
     inset 0 0 40px rgba(74, 158, 255, 0.1);
   border: 2px solid rgba(74, 158, 255, 0.4);
@@ -139,29 +143,31 @@
 }
 
 .terminal-text {
-  margin-bottom: 2rem;
+  margin-bottom: clamp(1rem, 3vw, 2rem);
 }
 
-/* TV Button */
+/* TV Button - Responsive */
 .tv-button {
   position: relative;
-  padding: 1rem 3rem;
+  padding: clamp(0.75rem, 2vw, 1rem) clamp(1.5rem, 5vw, 3rem);
   background: rgba(74, 158, 255, 0.3);
   border: 2px solid #4a9eff;
   border-radius: 8px;
   color: #ffffff;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
+  font-size: clamp(11px, 2.5vw, 14px);
   font-weight: 600;
   letter-spacing: 1px;
   cursor: pointer;
   overflow: hidden;
   transition: all 0.3s ease;
   text-shadow: 0 0 10px rgba(74, 158, 255, 0.8);
-  box-shadow: 
+  box-shadow:
     0 0 30px rgba(74, 158, 255, 0.5),
     inset 0 0 20px rgba(74, 158, 255, 0.1);
   transform: translateZ(10px);
+  /* Touch-friendly minimum size on mobile */
+  min-height: 44px;
 }
 
 .tv-button:hover {
@@ -248,27 +254,66 @@
   }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Responsive Breakpoints */
+@media (max-width: 480px) {
+  .tv-stand {
+    bottom: -50px;
+  }
+
+  .stand-neck {
+    width: 45px;
+    height: 30px;
+  }
+
+  .stand-base {
+    width: 110px;
+    height: 8px;
+  }
+
+  .tv-speaker-grille {
+    width: 90px;
+    height: 15px;
+    gap: 6px;
+  }
+
+  .grille-line {
+    width: 20px;
+  }
+
+  .tv-brand {
+    font-size: 9px;
+  }
+
+  .tv-controls {
+    gap: 10px;
+    right: 20px;
+  }
+
+  .tv-knob {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .tv-stand {
+    bottom: -60px;
+  }
+
+  .stand-neck {
+    width: 50px;
+    height: 35px;
+  }
+
+  .stand-base {
+    width: 130px;
+    height: 9px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Tablet adjustments */
   .tv-container {
-    width: 350px;
-    height: 280px;
-  }
-
-  .tv-frame {
-    inset: -30px -35px -60px -35px;
-  }
-
-  .tv-button-container {
-    padding: 1.5rem;
-  }
-
-  .terminal-text {
-    margin-bottom: 1.5rem;
-  }
-
-  .tv-button {
-    padding: 0.75rem 2rem;
-    font-size: 12px;
+    max-width: 450px;
   }
 }

@@ -73,6 +73,16 @@ body {
   background: rgba(74, 158, 255, 0.5);
 }
 
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Enhanced Glass Card Styles */
 .glass-card {
   background: linear-gradient(
@@ -337,5 +347,32 @@ body {
   }
   50% {
     transform: translateY(-10px) scale(1.1);
+  }
+}
+
+/* Radio wave ripple animation for transmission effect */
+@keyframes radio-wave {
+  0% {
+    r: 0;
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    r: 500;
+    opacity: 0;
+  }
+}
+
+/* Signal pulse animation for success message */
+@keyframes signal-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1.3);
   }
 }

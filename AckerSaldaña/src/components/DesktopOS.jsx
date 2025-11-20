@@ -5,9 +5,11 @@ import Window from './Window';
 import TerminalWindow from './TerminalWindow';
 import ProjectExplorer from './ProjectExplorer';
 import PhotoGallery from './PhotoGallery';
+import useBreakpoint from '../hooks/useBreakpoint';
 
 const DesktopOS = () => {
   const navigate = useNavigate();
+  const { isMobile, isTablet, windowSize } = useBreakpoint();
   const [bootComplete, setBootComplete] = useState(false);
   const [bootLines, setBootLines] = useState([]);
   const [windows, setWindows] = useState({});
@@ -20,36 +22,43 @@ const DesktopOS = () => {
   const zIndexCounter = useRef(100);
   const shutdownRef = useRef(null);
 
+  // Calculate responsive initial positions based on viewport
+  const getResponsivePosition = (index) => {
+    if (isMobile) {
+      return { x: 10, y: 10 };
+    } else if (isTablet) {
+      return { x: 50 + (index * 30), y: 50 + (index * 30) };
+    }
+    return { x: 100 + (index * 50), y: 100 + (index * 50) };
+  };
+
   const apps = {
     terminal: {
       id: 'terminal',
       title: 'Terminal',
       icon: '>_',
       component: TerminalWindow,
-      width: 600,
-      height: 400,
-      x: 100,
-      y: 100
+      width: isMobile ? windowSize.width - 20 : 600,
+      height: isMobile ? windowSize.height - 120 : 400,
+      ...getResponsivePosition(0)
     },
     projects: {
       id: 'projects',
       title: 'Project Explorer',
       icon: '📁',
       component: ProjectExplorer,
-      width: 700,
-      height: 500,
-      x: 150,
-      y: 150
+      width: isMobile ? windowSize.width - 20 : 700,
+      height: isMobile ? windowSize.height - 120 : 500,
+      ...getResponsivePosition(1)
     },
     gallery: {
       id: 'gallery',
       title: 'Photo Gallery',
       icon: '📷',
       component: PhotoGallery,
-      width: 800,
-      height: 600,
-      x: 200,
-      y: 100
+      width: isMobile ? windowSize.width - 20 : 800,
+      height: isMobile ? windowSize.height - 120 : 600,
+      ...getResponsivePosition(2)
     }
   };
 
@@ -204,7 +213,7 @@ const DesktopOS = () => {
   // Shutdown screen
   if (isShuttingDown) {
     return (
-      <div ref={shutdownRef} className="fixed inset-0 bg-black z-[200] flex flex-col p-10 font-['JetBrains_Mono'] overflow-hidden">
+      <div ref={shutdownRef} className={`fixed inset-0 bg-black z-[200] flex flex-col font-['JetBrains_Mono'] overflow-hidden ${isMobile ? 'p-5' : 'p-10'}`}>
         {/* CRT scanlines */}
         <div
           className="absolute inset-0 pointer-events-none opacity-40"
@@ -221,11 +230,11 @@ const DesktopOS = () => {
               key={i}
               className={`mb-1 ${
                 line.special
-                  ? 'text-[#0affc2] text-xl font-bold mt-4'
+                  ? `text-[#0affc2] font-bold mt-4 ${isMobile ? 'text-base' : 'text-xl'}`
                   : line.text.includes('[OK]')
                   ? 'text-[#0affc2]'
                   : 'text-gray-400'
-              } text-sm`}
+              } ${isMobile ? 'text-xs' : 'text-sm'}`}
               style={{ opacity: 0.9 }}
             >
               {line.text}
@@ -239,7 +248,7 @@ const DesktopOS = () => {
   // Boot screen
   if (!bootComplete) {
     return (
-      <div className="fixed inset-0 bg-black z-[200] flex flex-col p-10 font-['JetBrains_Mono'] overflow-hidden">
+      <div className={`fixed inset-0 bg-black z-[200] flex flex-col font-['JetBrains_Mono'] overflow-hidden ${isMobile ? 'p-5' : 'p-10'}`}>
         {/* CRT scanlines */}
         <div
           className="absolute inset-0 pointer-events-none opacity-40"
@@ -256,11 +265,11 @@ const DesktopOS = () => {
               key={i}
               className={`mb-1 ${
                 line.special
-                  ? 'text-[#0affc2] text-xl font-bold mt-4'
+                  ? `text-[#0affc2] font-bold mt-4 ${isMobile ? 'text-base' : 'text-xl'}`
                   : line.text.includes('[OK]')
                   ? 'text-[#0affc2]'
                   : 'text-gray-400'
-              } text-sm`}
+              } ${isMobile ? 'text-xs' : 'text-sm'}`}
               style={{ opacity: 0.9 }}
             >
               {line.text}
@@ -291,25 +300,34 @@ const DesktopOS = () => {
       />
 
       {/* Desktop Area */}
-      <div className="absolute top-0 left-0 right-0 bottom-12 p-5 flex flex-wrap content-start gap-5 z-10">
-        {/* Desktop Icons */}
-        {Object.keys(apps).map((appId) => {
-          const app = apps[appId];
-          return (
-            <div
-              key={appId}
-              className="w-20 flex flex-col items-center cursor-pointer p-2 rounded hover:bg-white/5 transition-all"
-              onDoubleClick={() => handleDesktopIconClick(appId)}
-            >
-              <div className="w-12 h-12 mb-2 flex items-center justify-center text-2xl bg-gradient-to-br from-[#2a303c] to-[#161b22] rounded-xl border border-white/8 shadow-lg text-[#0affc2]">
-                {app.icon}
+      <div className={`absolute top-0 left-0 right-0 z-10 ${isMobile ? 'bottom-16 p-3' : 'bottom-12 p-5'}`}>
+        {/* Desktop Icons - Responsive Grid */}
+        <div className={`grid gap-3 ${
+          isMobile ? 'grid-cols-3' : isTablet ? 'grid-cols-4' : 'flex flex-wrap content-start gap-5'
+        }`}>
+          {Object.keys(apps).map((appId) => {
+            const app = apps[appId];
+            return (
+              <div
+                key={appId}
+                className={`flex flex-col items-center cursor-pointer p-2 rounded hover:bg-white/5 transition-all ${
+                  isMobile ? 'w-full' : 'w-20'
+                }`}
+                onDoubleClick={() => handleDesktopIconClick(appId)}
+                onClick={isMobile ? () => handleDesktopIconClick(appId) : undefined}
+              >
+                <div className={`mb-2 flex items-center justify-center bg-gradient-to-br from-[#2a303c] to-[#161b22] rounded-xl border border-white/8 shadow-lg text-[#0affc2] ${
+                  isMobile ? 'w-16 h-16 text-3xl' : 'w-12 h-12 text-2xl'
+                }`}>
+                  {app.icon}
+                </div>
+                <div className={`text-white text-center ${isMobile ? 'text-xs' : 'text-xs'}`} style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
+                  {app.title}
+                </div>
               </div>
-              <div className="text-xs text-white text-center" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
-                {app.title}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Windows */}
@@ -341,25 +359,29 @@ const DesktopOS = () => {
       })}
 
       {/* Taskbar */}
-      <div className="absolute bottom-0 left-0 right-0 h-12 bg-[#0f0f14]/85 backdrop-blur-xl border-t border-white/8 flex items-center justify-between px-4 z-[9000]">
+      <div className={`absolute bottom-0 left-0 right-0 bg-[#0f0f14]/85 backdrop-blur-xl border-t border-white/8 flex items-center justify-between z-[9000] ${
+        isMobile ? 'h-16 px-2' : 'h-12 px-4'
+      }`}>
         {/* Start Button */}
         <div className="relative">
           <div
-            className={`start-btn flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-all ${
+            className={`start-btn flex items-center rounded-md cursor-pointer transition-all ${
               showStartMenu ? 'bg-white/15' : 'bg-white/5 hover:bg-white/10'
-            }`}
+            } ${isMobile ? 'gap-1 px-2 py-2' : 'gap-2 px-3 py-1.5'}`}
             onClick={() => setShowStartMenu(!showStartMenu)}
           >
-            <div className="w-4 h-4 bg-[#0affc2] rounded-sm" />
-            <span className="text-[#e0e0e0] font-semibold text-xs font-['Inter']">NEXUS</span>
+            <div className={`bg-[#0affc2] rounded-sm ${isMobile ? 'w-6 h-6' : 'w-4 h-4'}`} />
+            {!isMobile && <span className="text-[#e0e0e0] font-semibold text-xs font-['Inter']">ASoft</span>}
           </div>
 
           {/* Start Menu */}
           {showStartMenu && (
-            <div className="start-menu absolute bottom-full left-0 mb-2 w-64 bg-[#1a1a1f]/95 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl overflow-hidden">
+            <div className={`start-menu absolute bottom-full left-0 mb-2 bg-[#1a1a1f]/95 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl overflow-hidden ${
+              isMobile ? 'w-72' : 'w-64'
+            }`}>
               {/* User Info */}
-              <div className="p-4 border-b border-white/10 bg-white/5">
-                <div className="text-sm font-semibold text-white mb-1">Acker Saldaña</div>
+              <div className={`border-b border-white/10 bg-white/5 ${isMobile ? 'p-3' : 'p-4'}`}>
+                <div className={`font-semibold text-white mb-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>Acker Saldaña</div>
                 <div className="text-xs text-gray-400">Full Stack Developer</div>
               </div>
 
@@ -407,7 +429,7 @@ const DesktopOS = () => {
         </div>
 
         {/* Task List */}
-        <div className="flex gap-1 flex-1 ml-4">
+        <div className={`flex gap-1 flex-1 overflow-x-auto scrollbar-hide ${isMobile ? 'ml-2' : 'ml-4'}`}>
           {Object.keys(windows).map((appId) => {
             const win = windows[appId];
             const isMinimized = minimizedWindows.has(appId);
@@ -416,20 +438,22 @@ const DesktopOS = () => {
               <button
                 key={appId}
                 onClick={() => (isMinimized ? openWindow(appId) : focusWindow(appId))}
-                className={`px-4 py-2 rounded text-xs transition-all border-b-2 ${
+                className={`rounded transition-all border-b-2 flex-shrink-0 ${
+                  isMobile ? 'px-2 py-1.5 text-[10px]' : 'px-4 py-2 text-xs'
+                } ${
                   activeWindow === appId && !isMinimized
                     ? 'bg-white/8 text-white border-[#0affc2]'
                     : 'bg-transparent text-gray-500 border-transparent hover:bg-white/5 hover:text-white'
                 }`}
               >
-                {win.title}
+                {isMobile ? win.icon : win.title}
               </button>
             );
           })}
         </div>
 
         {/* Clock */}
-        <div className="text-xs text-gray-500 font-['JetBrains_Mono']">
+        <div className={`text-gray-500 font-['JetBrains_Mono'] flex-shrink-0 ${isMobile ? 'text-[10px] ml-1' : 'text-xs'}`}>
           {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>

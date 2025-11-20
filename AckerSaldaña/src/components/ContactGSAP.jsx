@@ -26,6 +26,7 @@ const ContactGSAP = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [transmissionStatus, setTransmissionStatus] = useState('');
 
   const email = 'codeasdf@outlook.com';
 
@@ -38,43 +39,132 @@ const ContactGSAP = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Spectacular send animation
+    // Multi-stage transmission animation
     const tl = gsap.timeline({
       onComplete: () => {
         setIsSubmitting(false);
         setSubmitStatus('success');
+        setTransmissionStatus('');
         setFormData({ name: '', email: '', subject: '', message: '' });
 
-        // Success animation
+        // Success animation - Award-winning style
         if (successRef.current) {
-          gsap.fromTo(
-            successRef.current,
-            { scale: 0, rotation: -180, opacity: 0 },
+          const tl = gsap.timeline();
+
+          // Backdrop fade in
+          tl.fromTo(
+            successRef.current.querySelector('.absolute.inset-0'),
+            { opacity: 0 },
+            { opacity: 1, duration: 0.4, ease: 'power2.out' }
+          );
+
+          // Main text reveal with scale and blur
+          tl.fromTo(
+            successRef.current.querySelector('h1'),
+            {
+              opacity: 0,
+              scale: 1.2,
+              filter: 'blur(20px)',
+            },
+            {
+              opacity: 1,
+              scale: 1,
+              filter: 'blur(0px)',
+              duration: 1,
+              ease: 'power3.out',
+            },
+            '-=0.2'
+          );
+
+          // Subtext stagger
+          tl.fromTo(
+            successRef.current.querySelectorAll('.space-y-2 p'),
+            { opacity: 0, y: 20 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.6,
+              stagger: 0.1,
+              ease: 'power2.out',
+            },
+            '-=0.5'
+          );
+
+          // Signal bars
+          tl.fromTo(
+            successRef.current.querySelectorAll('.mt-12 > div'),
+            { scaleY: 0, opacity: 0 },
+            {
+              scaleY: 1,
+              opacity: 1,
+              duration: 0.5,
+              stagger: 0.05,
+              ease: 'elastic.out(1, 0.5)',
+            },
+            '-=0.3'
+          );
+
+          // Corner accents
+          tl.fromTo(
+            successRef.current.querySelectorAll('.absolute.w-16'),
+            { scale: 0, opacity: 0 },
             {
               scale: 1,
-              rotation: 0,
               opacity: 1,
-              duration: 0.6,
-              ease: 'back.out(1.7)',
-            }
+              duration: 0.4,
+              stagger: 0.05,
+              ease: 'back.out(2)',
+            },
+            '-=0.5'
           );
         }
 
-        // Reset after 5 seconds
+        // Reset after 3.5 seconds with elegant fade out
         setTimeout(() => {
           if (successRef.current) {
-            gsap.to(successRef.current, {
+            const tl = gsap.timeline({
+              onComplete: () => setSubmitStatus(null),
+            });
+
+            // Fade out in reverse order
+            tl.to(successRef.current.querySelectorAll('.absolute.w-16'), {
               scale: 0,
               opacity: 0,
               duration: 0.3,
-              onComplete: () => setSubmitStatus(null),
+              stagger: 0.03,
+              ease: 'power2.in',
             });
+
+            tl.to(
+              successRef.current.querySelector('h1'),
+              {
+                opacity: 0,
+                scale: 0.9,
+                filter: 'blur(10px)',
+                duration: 0.5,
+                ease: 'power2.in',
+              },
+              '-=0.2'
+            );
+
+            tl.to(
+              successRef.current,
+              {
+                opacity: 0,
+                duration: 0.3,
+                ease: 'power2.in',
+              },
+              '-=0.2'
+            );
           }
-        }, 5000);
+        }, 3500);
       },
     });
 
-    // Button shake and scale
+    // Stage 1: ENCRYPTING (0-0.8s)
+    tl.call(() => setTransmissionStatus('ENCRYPTING PACKET DATA...'));
+
+    // Button pulse
     tl.to(buttonRef.current, {
       scale: 0.95,
       duration: 0.1,
@@ -82,12 +172,24 @@ const ContactGSAP = () => {
       yoyo: true,
     });
 
-    // Particle burst explosion from button
+    // Form glitch effect
+    tl.to(formRef.current, {
+      x: -2,
+      duration: 0.05,
+      repeat: 5,
+      yoyo: true,
+      ease: 'none',
+    }, '<');
+
+    // Stage 2: UPLOADING (0.8-1.6s)
+    tl.call(() => setTransmissionStatus('UPLOADING TO DEEP SPACE...'), '+=0.5');
+
+    // Warp speed particle burst
     particlesRef.current.forEach((particle, i) => {
       if (!particle) return;
 
       const angle = (i / particlesRef.current.length) * Math.PI * 2;
-      const distance = 150 + Math.random() * 100;
+      const distance = 250 + Math.random() * 150; // Increased distance for warp effect
       const x = Math.cos(angle) * distance;
       const y = Math.sin(angle) * distance;
 
@@ -102,13 +204,24 @@ const ContactGSAP = () => {
         {
           x,
           y,
-          scale: 1,
+          scale: 1.5, // Larger scale for warp effect
           opacity: 0,
-          duration: 1.2,
-          ease: 'power2.out',
+          duration: 0.8, // Faster for warp speed
+          ease: 'power4.out',
         },
-        '-=1' // Start slightly before previous animation ends
+        '-=0.7'
       );
+    });
+
+    // Stage 3: SIGNAL LOCKED (1.6-2.0s)
+    tl.call(() => setTransmissionStatus('SIGNAL LOCKED: SENT'), '+=0.6');
+
+    // Final flash
+    tl.to(formRef.current, {
+      opacity: 0.3,
+      duration: 0.1,
+      yoyo: true,
+      repeat: 1,
     });
 
     // Simulate API call
@@ -224,36 +337,128 @@ const ContactGSAP = () => {
     >
       {/* Particles for send animation - only render when sending */}
       {isSubmitting && (
-        <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              ref={(el) => (particlesRef.current[i] = el)}
-              className="absolute w-3 h-3 rounded-full"
-              style={{
-                background: `linear-gradient(135deg, #4a9eff, #7b61ff)`,
-                boxShadow: '0 0 10px rgba(74, 158, 255, 0.8)',
-              }}
-            />
-          ))}
-        </div>
-      )}
+        <>
+          {/* Warp speed star particles */}
+          <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
+            {[...Array(30)].map((_, i) => (
+              <div
+                key={i}
+                ref={(el) => (particlesRef.current[i] = el)}
+                className="absolute rounded-full"
+                style={{
+                  width: `${2 + Math.random() * 4}px`,
+                  height: `${2 + Math.random() * 4}px`,
+                  background: i % 3 === 0 ? '#4a9eff' : i % 3 === 1 ? '#7b61ff' : '#4aefff',
+                  boxShadow: `0 0 ${10 + Math.random() * 10}px currentColor`,
+                }}
+              />
+            ))}
+          </div>
 
-      {/* Success message overlay */}
-      {submitStatus === 'success' && (
-        <div
-          ref={successRef}
-          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none"
-        >
-          <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] px-12 py-8 rounded-3xl border-2 border-green-400 shadow-[0_0_50px_rgba(74,255,74,0.6)]">
-            <div className="flex items-center gap-4">
-              <div className="text-6xl">🚀</div>
-              <div>
-                <p className="text-green-400 font-bold text-2xl mb-2">Message Sent!</p>
-                <p className="text-gray-300 text-lg">I'll respond soon.</p>
+          {/* Radio wave ripples */}
+          <div className="fixed inset-0 pointer-events-none z-40 flex items-center justify-center">
+            <svg className="absolute w-full h-full">
+              <circle
+                cx="50%"
+                cy="50%"
+                r="0"
+                fill="none"
+                stroke="#4a9eff"
+                strokeWidth="2"
+                opacity="0.6"
+                className="animate-[radio-wave_1.5s_ease-out_infinite]"
+              />
+              <circle
+                cx="50%"
+                cy="50%"
+                r="0"
+                fill="none"
+                stroke="#7b61ff"
+                strokeWidth="2"
+                opacity="0.6"
+                className="animate-[radio-wave_1.5s_ease-out_0.5s_infinite]"
+              />
+              <circle
+                cx="50%"
+                cy="50%"
+                r="0"
+                fill="none"
+                stroke="#4aefff"
+                strokeWidth="2"
+                opacity="0.6"
+                className="animate-[radio-wave_1.5s_ease-out_1s_infinite]"
+              />
+            </svg>
+          </div>
+
+          {/* Transmission status display */}
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
+            <div className="bg-black/90 backdrop-blur-xl px-8 py-6 rounded-2xl border-2 border-[#4a9eff] shadow-[0_0_50px_rgba(74,158,255,0.6)]">
+              <div className="flex items-center gap-4">
+                <div className="w-3 h-3 bg-[#4a9eff] rounded-full animate-pulse shadow-[0_0_15px_rgba(74,158,255,0.8)]" />
+                <p className="text-[#4a9eff] font-['JetBrains_Mono'] text-lg font-bold tracking-wider animate-pulse">
+                  {transmissionStatus}
+                </p>
               </div>
             </div>
           </div>
+        </>
+      )}
+
+      {/* Success message overlay - Award-winning design */}
+      {submitStatus === 'success' && (
+        <div
+          ref={successRef}
+          className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center"
+        >
+          {/* Backdrop with blur */}
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+
+          {/* Success content */}
+          <div className="relative z-10 text-center px-8">
+            {/* Main heading with gradient */}
+            <h1 className="text-[15vw] md:text-[12vw] lg:text-[10vw] font-black leading-[0.85] tracking-tighter mb-8"
+                style={{
+                  background: 'linear-gradient(135deg, #4a9eff 0%, #7b61ff 50%, #4aefff 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  textShadow: '0 0 80px rgba(74, 158, 255, 0.3)',
+                }}>
+              SENT
+            </h1>
+
+            {/* Subtext */}
+            <div className="space-y-2">
+              <p className="text-white/90 text-xl md:text-2xl font-light tracking-wide">
+                Message transmitted successfully
+              </p>
+              <p className="text-white/50 text-sm md:text-base font-['JetBrains_Mono'] tracking-wider">
+                I'll get back to you soon
+              </p>
+            </div>
+
+            {/* Animated signal bars */}
+            <div className="mt-12 flex justify-center gap-2">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-1 bg-gradient-to-t from-[#4a9eff] to-[#7b61ff] rounded-full"
+                  style={{
+                    height: `${(i + 1) * 8}px`,
+                    animation: `signal-pulse 1.5s ease-in-out ${i * 0.1}s infinite`,
+                    boxShadow: '0 0 10px rgba(74, 158, 255, 0.5)',
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Animated corner accents */}
+          <div className="absolute top-8 left-8 w-16 h-16 border-l-2 border-t-2 border-[#4a9eff]/30 rounded-tl-lg" />
+          <div className="absolute top-8 right-8 w-16 h-16 border-r-2 border-t-2 border-[#7b61ff]/30 rounded-tr-lg" />
+          <div className="absolute bottom-8 left-8 w-16 h-16 border-l-2 border-b-2 border-[#4aefff]/30 rounded-bl-lg" />
+          <div className="absolute bottom-8 right-8 w-16 h-16 border-r-2 border-b-2 border-[#4a9eff]/30 rounded-br-lg" />
         </div>
       )}
 

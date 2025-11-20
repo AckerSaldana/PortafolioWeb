@@ -74,7 +74,7 @@ const TerminalWindow = ({ onOpenWindow }) => {
         newOutput.push(
           'Contact Information:',
           '  GitHub: github.com/AckerSaldana',
-          '  Email: [your email]',
+          '  Email: alcker100@hotmail.com',
           ''
         );
         break;

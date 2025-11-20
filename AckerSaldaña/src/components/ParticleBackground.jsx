@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, Suspense } from 'react';
+import { useRef, useState, useEffect, Suspense, useMemo } from 'react';
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { Points, PointMaterial, Sphere, Trail, useGLTF, Sparkles } from '@react-three/drei';
 import * as random from 'maath/random/dist/maath-random.esm';
@@ -7,10 +7,13 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import useBreakpoint from '../hooks/useBreakpoint';
+import useDevicePerformance from '../hooks/useDevicePerformance';
 
-function Stars() {
+function Stars({ particleCount = 3000 }) {
   const meshRef = useRef();
-  const sphere = random.inSphere(new Float32Array(3000), { radius: 1.5 });
+  // Memoize sphere generation so it only happens once on mount
+  const sphere = useMemo(() => random.inSphere(new Float32Array(particleCount), { radius: 1.5 }), [particleCount]);
 
   // Store press state inside component
   const isPressed = useRef(false);
@@ -590,72 +593,112 @@ function Comet({ delay = 3000 }) {
 }
 
 const ParticleBackground = () => {
+  const { isMobile, isTablet } = useBreakpoint();
+  const { performance } = useDevicePerformance();
+
+  // Memoize counts to prevent recalculation on every render
+  // Only recalculate when breakpoint changes, NOT when performance changes
+  const particleCount = useMemo(() => {
+    if (isMobile) return 800;
+    if (isTablet) return 1500;
+    return 3000; // desktop
+  }, [isMobile, isTablet]);
+
+  // Calculate comet count based on device (stable, based on breakpoint only)
+  const cometCount = useMemo(() => {
+    if (isMobile) return 1;
+    if (isTablet) return 2;
+    return 4; // desktop
+  }, [isMobile, isTablet]);
+
+  // Determine if planets should be rendered (stable)
+  const showPlanets = useMemo(() => !isMobile, [isMobile]);
+
+  // Reduce planet count on medium performance (stable)
+  const planetCount = useMemo(() => (isTablet ? 2 : 4), [isTablet]);
+
+  // Stable lighting setup based on breakpoint (not performance)
+  const useLighting = useMemo(() => !isMobile, [isMobile]);
+
   return (
     <div className="fixed inset-0 z-0 pointer-events-none">
       <Canvas
         camera={{ position: [0, 0, 1] }}
         style={{ pointerEvents: 'auto', background: 'transparent' }}
-        gl={{ alpha: true, antialias: true }}
+        gl={{
+          alpha: true,
+          antialias: !isMobile, // Disable antialiasing on mobile
+          powerPreference: isMobile ? 'low-power' : 'high-performance'
+        }}
+        dpr={isMobile ? [1, 1.5] : [1, 2]} // Limit pixel ratio on mobile
       >
         {/* Mejor iluminación para los planetas */}
         <color attach="background" args={['#0a0a0a']} />
         <ambientLight intensity={0.8} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
-        <pointLight position={[-10, -10, -10]} intensity={0.5} />
-        <directionalLight position={[5, 5, 5]} intensity={0.8} />
+        {useLighting && <pointLight position={[10, 10, 10]} intensity={1} />}
+        {useLighting && <pointLight position={[-10, -10, -10]} intensity={0.5} />}
+        {useLighting && <directionalLight position={[5, 5, 5]} intensity={0.8} />}
 
-        <Stars />
-        
-        {/* Cometas con delays diferentes y más dinámicos */}
-        <Comet delay={1000} />
-        <Comet delay={4000} />
-        <Comet delay={7000} />
-        <Comet delay={10000} />
-        
-        {/* Planetas más separados */}
-        <Suspense fallback={null}>
-          <GLTFPlanet 
-            modelPath="/models/Planet_21.glb"
-            position={[1.5, 0.3, -2]}
-            scale={0.049}
-            orbitRadius={0.5}
-            orbitSpeed={0.4}
-            initialAngle={0}
-          />
-        </Suspense>
-        
-        <Suspense fallback={null}>
-          <GLTFPlanet 
-            modelPath="/models/Planet_15.glb"
-            position={[-1.8, -0.2, -1.5]}
-            scale={0.010}
-            orbitRadius={0.4}
-            orbitSpeed={0.3}
-            initialAngle={Math.PI / 3}
-          />
-        </Suspense>
-        
-        <Suspense fallback={null}>
-          <GLTFPlanet 
-            modelPath="/models/Planet_4.glb"
-            position={[0.5, -0.5, -2.5]}
-            scale={0.02}
-            orbitRadius={0.6}
-            orbitSpeed={0.15}
-            initialAngle={Math.PI * 2/3}
-          />
-        </Suspense>
-        
-        <Suspense fallback={null}>
-          <GLTFPlanet 
-            modelPath="/models/Planet_42.glb"
-            position={[-0.8, 0.6, -3]}
-            scale={0.013}
-            orbitRadius={0.7}
-            orbitSpeed={0.1}
-            initialAngle={Math.PI * 4/3}
-          />
-        </Suspense>
+        <Stars particleCount={particleCount} />
+
+        {/* Cometas con delays diferentes - responsive count */}
+        {cometCount >= 1 && <Comet delay={1000} />}
+        {cometCount >= 2 && <Comet delay={4000} />}
+        {cometCount >= 3 && <Comet delay={7000} />}
+        {cometCount >= 4 && <Comet delay={10000} />}
+
+        {/* Planetas más separados - only on capable devices */}
+        {showPlanets && planetCount >= 1 && (
+          <Suspense fallback={null}>
+            <GLTFPlanet
+              modelPath="/models/Planet_21.glb"
+              position={[1.5, 0.3, -2]}
+              scale={0.049}
+              orbitRadius={0.5}
+              orbitSpeed={0.4}
+              initialAngle={0}
+            />
+          </Suspense>
+        )}
+
+        {showPlanets && planetCount >= 2 && (
+          <Suspense fallback={null}>
+            <GLTFPlanet
+              modelPath="/models/Planet_15.glb"
+              position={[-1.8, -0.2, -1.5]}
+              scale={0.010}
+              orbitRadius={0.4}
+              orbitSpeed={0.3}
+              initialAngle={Math.PI / 3}
+            />
+          </Suspense>
+        )}
+
+        {showPlanets && planetCount >= 3 && (
+          <Suspense fallback={null}>
+            <GLTFPlanet
+              modelPath="/models/Planet_4.glb"
+              position={[0.5, -0.5, -2.5]}
+              scale={0.02}
+              orbitRadius={0.6}
+              orbitSpeed={0.15}
+              initialAngle={Math.PI * 2/3}
+            />
+          </Suspense>
+        )}
+
+        {showPlanets && planetCount >= 4 && (
+          <Suspense fallback={null}>
+            <GLTFPlanet
+              modelPath="/models/Planet_42.glb"
+              position={[-0.8, 0.6, -3]}
+              scale={0.013}
+              orbitRadius={0.7}
+              orbitSpeed={0.1}
+              initialAngle={Math.PI * 4/3}
+            />
+          </Suspense>
+        )}
       </Canvas>
     </div>
   );
