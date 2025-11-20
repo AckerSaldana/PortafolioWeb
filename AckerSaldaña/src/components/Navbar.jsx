@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const isProjectsPage = location.pathname === '/projects';
 
   const navItems = [
@@ -58,12 +59,58 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isProjectsPage]);
 
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollToSection = (sectionId, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
+
     setIsMobileMenuOpen(false);
+
+    // If we're on the projects page and trying to go to a homepage section
+    if (isProjectsPage && sectionId !== 'projects') {
+      // Navigate to homepage first, then scroll after navigation completes
+      navigate('/', { replace: false });
+      // Wait for navigation and component mount
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          // Use Lenis smooth scroll if available
+          if (window.lenis) {
+            const top = element.offsetTop;
+            window.lenis.scrollTo(top, { duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+          } else {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }, 300);
+    }
+    // If we're on homepage or trying to go to projects from homepage
+    else if (sectionId === 'projects' && !isProjectsPage) {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        // Use Lenis smooth scroll if available
+        if (window.lenis) {
+          const top = element.offsetTop;
+          window.lenis.scrollTo(top, { duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+        } else {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+    // Same page scrolling
+    else {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        // Use Lenis smooth scroll if available
+        if (window.lenis) {
+          const top = element.offsetTop;
+          window.lenis.scrollTo(top, { duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+        } else {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
   };
 
   return (
@@ -117,7 +164,8 @@ const Navbar = () => {
                   {navItems.map((item) => (
                     <motion.button
                       key={item.id}
-                      onClick={() => scrollToSection(item.id)}
+                      type="button"
+                      onClick={(e) => scrollToSection(item.id, e)}
                       className="cursor-target relative group px-4 py-2 rounded-full transition-all"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -176,10 +224,11 @@ const Navbar = () => {
                     {navItems.map((item) => (
                       <button
                         key={item.id}
-                        onClick={() => scrollToSection(item.id)}
+                        type="button"
+                        onClick={(e) => scrollToSection(item.id, e)}
                         className={`cursor-target block w-full text-left py-2 text-sm font-medium transition-colors ${
-                          activeSection === item.id 
-                            ? 'text-[#4a9eff]' 
+                          activeSection === item.id
+                            ? 'text-[#4a9eff]'
                             : 'text-gray-400 hover:text-white'
                         }`}
                       >

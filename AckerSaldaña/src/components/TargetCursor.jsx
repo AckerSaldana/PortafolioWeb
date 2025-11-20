@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useMemo } from "react";
+import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { gsap } from "gsap";
 import { useLocation } from "react-router-dom";
 import "./TargetCursor.css";
@@ -7,6 +7,8 @@ const TargetCursor = ({
   targetSelector = ".cursor-target",
   spinDuration = 2,
   hideDefaultCursor = true,
+  magneticStrength = 0.4, // Magnetic effect strength (0-1)
+  magneticRadius = 80, // Distance at which magnetic effect starts
 }) => {
   const cursorRef = useRef(null);
   const cornersRef = useRef(null);
@@ -14,6 +16,8 @@ const TargetCursor = ({
   const dotRef = useRef(null);
   const location = useLocation();
   const isProjectsPage = location.pathname === "/projects";
+  const [isMobile, setIsMobile] = useState(false);
+  const magneticElements = useRef(new Map());
   const constants = useMemo(
     () => ({
       borderWidth: 3,
@@ -33,8 +37,22 @@ const TargetCursor = ({
     });
   }, []);
 
+  // Detect mobile device
   useEffect(() => {
-    if (!cursorRef.current) return;
+    const checkMobile = () => {
+      setIsMobile(window.matchMedia('(max-width: 768px)').matches || 
+                  'ontouchstart' in window || 
+                  navigator.maxTouchPoints > 0);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (!cursorRef.current || isMobile) return;
 
     const originalCursor = document.body.style.cursor;
     if (hideDefaultCursor) {
@@ -314,7 +332,7 @@ const TargetCursor = ({
       spinTl.current?.kill();
       document.body.style.cursor = originalCursor;
     };
-  }, [targetSelector, spinDuration, moveCursor, constants, hideDefaultCursor]);
+  }, [targetSelector, spinDuration, moveCursor, constants, hideDefaultCursor, isMobile]);
 
   useEffect(() => {
     if (!cursorRef.current || !spinTl.current) return;
@@ -326,6 +344,9 @@ const TargetCursor = ({
         .to(cursorRef.current, { rotation: "+=360", duration: spinDuration, ease: "none" });
     }
   }, [spinDuration]);
+
+  // Don't render cursor on mobile devices
+  if (isMobile) return null;
 
   return (
     <div ref={cursorRef} className="target-cursor-wrapper">

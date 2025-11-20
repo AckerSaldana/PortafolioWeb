@@ -4,6 +4,34 @@
   height: 100%;
   background: #000;
   overflow: hidden;
+  /* CRT Curvature Effect */
+  border-radius: 0;
+  filter: contrast(1.1) brightness(1.05);
+}
+
+/* CRT Screen Bulge */
+.css-terminal-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 70%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Vignette Effect */
+.css-terminal-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 200px 60px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  z-index: 11;
 }
 
 .css-terminal-canvas {
@@ -15,7 +43,7 @@
   opacity: 0.3;
 }
 
-/* Scanlines effect */
+/* Enhanced Scanlines effect */
 .css-terminal-scanlines {
   position: absolute;
   top: 0;
@@ -26,31 +54,71 @@
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 255, 0, 0.03) 2px,
-    rgba(0, 255, 0, 0.03) 4px
+    rgba(0, 255, 0, 0.05) 2px,
+    rgba(0, 255, 0, 0.05) 4px
   );
   pointer-events: none;
   z-index: 1;
 }
 
-/* Moving scanline */
+/* Primary Moving scanline with glow */
 .css-terminal-scanlines::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 6px;
   background: linear-gradient(
     180deg,
     transparent,
-    rgba(0, 255, 0, 0.1),
+    rgba(0, 255, 0, 0.3),
+    rgba(0, 255, 0, 0.6),
+    rgba(0, 255, 0, 0.3),
     transparent
   );
-  animation: scanline 8s linear infinite;
+  box-shadow:
+    0 0 20px rgba(0, 255, 0, 0.8),
+    0 0 40px rgba(0, 255, 0, 0.4);
+  animation: scanline-primary 8s linear infinite;
 }
 
-@keyframes scanline {
+/* Secondary scanline (slower) */
+.css-terminal-scanlines::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(0, 255, 0, 0.2),
+    transparent
+  );
+  animation: scanline-secondary 12s linear infinite;
+  opacity: 0.6;
+}
+
+@keyframes scanline-primary {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes scanline-secondary {
   0% {
     top: 0;
   }
@@ -180,14 +248,111 @@
   }
 }
 
+/* Phosphor Glow Utility Classes */
+.phosphor-glow-text {
+  text-shadow:
+    0 0 10px rgba(0, 255, 0, 0.8),
+    0 0 20px rgba(0, 255, 0, 0.6),
+    0 0 30px rgba(0, 255, 0, 0.4),
+    0 0 40px rgba(0, 255, 0, 0.2);
+}
+
+.phosphor-glow-box {
+  box-shadow:
+    0 0 10px rgba(0, 255, 0, 0.6),
+    0 0 20px rgba(0, 255, 0, 0.4),
+    0 0 30px rgba(0, 255, 0, 0.2),
+    inset 0 0 10px rgba(0, 255, 0, 0.1);
+}
+
+.phosphor-glow-border {
+  box-shadow:
+    0 0 5px rgba(0, 255, 0, 0.8),
+    0 0 10px rgba(0, 255, 0, 0.6),
+    0 0 15px rgba(0, 255, 0, 0.4),
+    inset 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+/* Holographic Border Animation */
+@keyframes holographic-border {
+  0%, 100% {
+    border-color: rgba(0, 255, 0, 0.6);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+  }
+  25% {
+    border-color: rgba(0, 255, 159, 0.6);
+    box-shadow: 0 0 15px rgba(0, 255, 159, 0.4);
+  }
+  50% {
+    border-color: rgba(74, 158, 255, 0.6);
+    box-shadow: 0 0 20px rgba(74, 158, 255, 0.4);
+  }
+  75% {
+    border-color: rgba(123, 97, 255, 0.6);
+    box-shadow: 0 0 15px rgba(123, 97, 255, 0.4);
+  }
+}
+
+.holographic-border {
+  animation: holographic-border 6s ease-in-out infinite;
+}
+
+/* Holographic Shift - gradient movement */
+@keyframes holographic-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+/* Chromatic Aberration Effect (apply on hover) */
+.chromatic-aberration {
+  position: relative;
+}
+
+.chromatic-aberration::before,
+.chromatic-aberration::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.chromatic-aberration::before {
+  color: #ff0040;
+  transform: translate(-2px, 0);
+}
+
+.chromatic-aberration::after {
+  color: #00ff9f;
+  transform: translate(2px, 0);
+}
+
+.chromatic-aberration:hover::before,
+.chromatic-aberration:hover::after {
+  opacity: 0.8;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .css-terminal-scanlines::before {
+  .css-terminal-scanlines::before,
+  .css-terminal-scanlines::after {
     animation: none;
   }
-  
+
   .css-terminal-flicker {
     animation: none;
     opacity: 0;
+  }
+
+  .holographic-border {
+    animation: none;
   }
 }

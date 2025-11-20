@@ -6,7 +6,7 @@
   height: 0;
   pointer-events: none;
   z-index: 9999;
-  mix-blend-mode: difference;
+  /* Removed mix-blend-mode for cleaner appearance */
   transform: translate(-50%, -50%);
 }
 
@@ -20,7 +20,8 @@
   border-radius: 50%;
   transform: translate(-50%, -50%);
   will-change: transform;
-  box-shadow: 0 0 8px rgba(74, 158, 255, 0.8);
+  /* No glow effect */
+  box-shadow: none;
 }
 
 .target-cursor-corner {
@@ -31,7 +32,7 @@
   height: 12px;
   border: 2px solid #4a9eff;
   will-change: transform;
-  opacity: 0.8;
+  opacity: 0.6;
 }
 
 .corner-tl {
@@ -61,7 +62,8 @@
 /* Green cursor styles for projects page */
 .target-cursor-dot.cursor-green {
   background: #00ff00;
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+  /* No glow effect for green cursor */
+  box-shadow: none;
 }
 
 .target-cursor-corner.cursor-green {

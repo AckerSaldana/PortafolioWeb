@@ -1,18 +1,22 @@
+import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Hero from './components/Hero'
-import AboutMe from './components/AboutMe'
+import HeroGSAP from './components/HeroGSAP'
+import AboutMeGSAP from './components/AboutMeGSAP'
 import ParticleBackground from './components/ParticleBackground'
 import TargetCursor from './components/TargetCursor'
-import Skills from './components/Skills'
-import TVSection from './components/TVSection'
+import SkillsGSAP from './components/SkillsGSAP'
+import TVSectionGSAP from './components/TVSectionGSAP'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
-import Experience from './components/Experience'
-import Contact from './components/Contact'
-import Projects from './pages/Projects'
+import ExperienceGSAP from './components/ExperienceGSAP'
+import ContactGSAP from './components/ContactGSAP'
+import ProjectsGSAP from './pages/ProjectsGSAP'
 import { TransitionProvider } from './context/TransitionContext'
 import { motion } from 'framer-motion'
 import { useIntersectionObserver } from './hooks/useIntersectionObserver'
+import SmoothScroll from './components/SmoothScroll'
+import Preloader from './components/Preloader'
+import ScrollProgress from './components/ScrollProgress'
 
 function AnimatedSection({ id, title }) {
   const [ref, isVisible] = useIntersectionObserver({ threshold: 0.3 });
@@ -42,46 +46,54 @@ function AnimatedSection({ id, title }) {
 
 function HomePage() {
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative" style={{ background: '#0a0a0a' }}>
       <TargetCursor />
+      <ScrollProgress />
       <ParticleBackground />
       <Navbar />
-      
+
       <div id="home">
-        <Hero />
+        <HeroGSAP />
       </div>
-      
-      <AboutMe />
+
+      <AboutMeGSAP />
 
       <div id="skills">
-        <Skills />
+        <SkillsGSAP />
       </div>
 
       <div id="projects">
-        <TVSection />
+        <TVSectionGSAP />
       </div>
 
       <div id="experience">
-        <Experience />
+        <ExperienceGSAP />
       </div>
 
-      <Contact />
-      
+      <ContactGSAP />
+
       <Footer />
     </div>
   )
 }
 
 function App() {
+  const [isLoading, setIsLoading] = useState(false); // TEMPORARILY DISABLED
+
   return (
-    <Router>
-      <TransitionProvider>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/projects" element={<Projects />} />
-        </Routes>
-      </TransitionProvider>
-    </Router>
+    <>
+      {isLoading && <Preloader onComplete={() => setIsLoading(false)} />}
+      <Router>
+        <SmoothScroll>
+          <TransitionProvider>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/projects" element={<ProjectsGSAP />} />
+            </Routes>
+          </TransitionProvider>
+        </SmoothScroll>
+      </Router>
+    </>
   )
 }
 

@@ -245,14 +245,14 @@ const Projects = () => {
 
       {/* Content */}
       <motion.div 
-        className="relative z-10 min-h-screen"
+        className="relative z-[5] min-h-screen"
         initial={{ opacity: 0 }}
         animate={{ opacity: showContent ? 1 : 0 }}
         transition={{ duration: 0.8 }}
       >
         {/* Terminal Header */}
         <motion.header 
-          className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-[#333333]"
+          className="fixed top-0 left-0 right-0 z-[100] bg-black border-b border-[#333333]"
           initial={{ y: -100 }}
           animate={{ y: showContent ? 0 : -100 }}
           transition={{ duration: 0.5, delay: 0.2 }}

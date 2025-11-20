@@ -5,21 +5,25 @@ import * as random from 'maath/random/dist/maath-random.esm';
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 function Stars() {
   const meshRef = useRef();
   const sphere = random.inSphere(new Float32Array(3000), { radius: 1.5 });
-  
+
   // Store press state inside component
   const isPressed = useRef(false);
-  
-  // Animation state
+
+  // Animation state with scroll influence
   const animationState = useRef({
     rotationX: 0,
     rotationY: 0,
     rotationZ: Math.PI / 4,
     currentSpeed: 1,
-    targetSpeed: 1
+    targetSpeed: 1,
+    scrollSpeed: 0, // Additional speed from scroll
+    scrollProgress: 0, // Overall scroll progress
   });
 
   useEffect(() => {
@@ -27,7 +31,7 @@ function Stars() {
       const isButton = e.target.tagName === 'BUTTON';
       const isLink = e.target.tagName === 'A';
       const isInteractive = e.target.closest('button') || e.target.closest('a');
-      
+
       if (!isButton && !isLink && !isInteractive) {
         isPressed.current = true;
         animationState.current.targetSpeed = 8;
@@ -39,33 +43,62 @@ function Stars() {
       animationState.current.targetSpeed = 1;
     };
 
+    // GSAP ScrollTrigger for scroll-based effects
+    const scrollTrigger = ScrollTrigger.create({
+      trigger: document.body,
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 1,
+      onUpdate: (self) => {
+        // Update scroll progress (0 to 1)
+        animationState.current.scrollProgress = self.progress;
+
+        // Calculate scroll speed influence (velocity of scroll)
+        const velocity = self.getVelocity();
+        animationState.current.scrollSpeed = Math.abs(velocity) / 2000; // Normalize
+      },
+    });
+
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
+      scrollTrigger.kill();
     };
   }, []);
 
   useFrame((state, delta) => {
     if (!meshRef.current) return;
-    
+
     // Smooth speed interpolation
     const speedDiff = animationState.current.targetSpeed - animationState.current.currentSpeed;
     animationState.current.currentSpeed += speedDiff * 0.08;
-    
-    // Update rotation values based on current speed
-    const rotationDeltaX = delta * 0.05 * animationState.current.currentSpeed;
-    const rotationDeltaY = delta * 0.033 * animationState.current.currentSpeed;
-    
+
+    // Combine user interaction speed with scroll speed
+    const totalSpeed = animationState.current.currentSpeed + animationState.current.scrollSpeed;
+
+    // Update rotation values based on total speed
+    const rotationDeltaX = delta * 0.05 * totalSpeed;
+    const rotationDeltaY = delta * 0.033 * totalSpeed;
+
     animationState.current.rotationX += rotationDeltaX;
     animationState.current.rotationY += rotationDeltaY;
-    
+
     // Apply rotations
     meshRef.current.rotation.x = animationState.current.rotationX;
     meshRef.current.rotation.y = animationState.current.rotationY;
     meshRef.current.rotation.z = animationState.current.rotationZ;
+
+    // Color shift based on scroll progress (subtle)
+    const scrollProgress = animationState.current.scrollProgress;
+    const hue = 200 + scrollProgress * 40; // Shift from blue (200) to cyan (240)
+    const color = new THREE.Color().setHSL(hue / 360, 1, 0.65);
+
+    if (meshRef.current.material && meshRef.current.material.color) {
+      meshRef.current.material.color.copy(color);
+    }
   });
 
   return (
@@ -272,21 +305,43 @@ function GLTFPlanet({ modelPath, position, scale = 1, orbitRadius, orbitSpeed, i
   const groupRef = useRef();
   const planetRef = useRef();
   const orbitAngle = useRef(initialAngle);
+  const scrollOffset = useRef({ y: 0, progress: 0 });
+
+  // Track scroll progress for parallax
+  useEffect(() => {
+    const scrollTrigger = ScrollTrigger.create({
+      trigger: document.body,
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 1,
+      onUpdate: (self) => {
+        scrollOffset.current.progress = self.progress;
+      },
+    });
+
+    return () => scrollTrigger.kill();
+  }, []);
 
   useFrame((state, delta) => {
     if (!groupRef.current) return;
-    
+
     // Orbit animation - smooth elliptical orbit
     orbitAngle.current += delta * orbitSpeed;
-    
+
     // Create elliptical orbits with varying eccentricity
     const ellipseX = orbitRadius;
     const ellipseZ = orbitRadius * 0.8; // Slightly elliptical
-    
+
+    // Calculate parallax offset based on depth (z-position)
+    const depth = Math.abs(position[2]); // Depth from camera
+    const parallaxStrength = depth * 0.2; // Farther = more parallax
+    const parallaxY = (scrollOffset.current.progress - 0.5) * parallaxStrength;
+
     groupRef.current.position.x = position[0] + Math.cos(orbitAngle.current) * ellipseX;
     groupRef.current.position.z = position[2] + Math.sin(orbitAngle.current) * ellipseZ;
-    groupRef.current.position.y = position[1] + Math.sin(orbitAngle.current * 2) * 0.05; // Gentle vertical oscillation
-    
+    groupRef.current.position.y =
+      position[1] + Math.sin(orbitAngle.current * 2) * 0.05 + parallaxY; // Add parallax
+
     // Planet rotation on its own axis
     if (planetRef.current) {
       planetRef.current.rotation.y += delta * 0.5;
@@ -537,16 +592,18 @@ function Comet({ delay = 3000 }) {
 const ParticleBackground = () => {
   return (
     <div className="fixed inset-0 z-0 pointer-events-none">
-      <Canvas 
+      <Canvas
         camera={{ position: [0, 0, 1] }}
-        style={{ pointerEvents: 'auto' }}
+        style={{ pointerEvents: 'auto', background: 'transparent' }}
+        gl={{ alpha: true, antialias: true }}
       >
         {/* Mejor iluminación para los planetas */}
+        <color attach="background" args={['#0a0a0a']} />
         <ambientLight intensity={0.8} />
         <pointLight position={[10, 10, 10]} intensity={1} />
         <pointLight position={[-10, -10, -10]} intensity={0.5} />
         <directionalLight position={[5, 5, 5]} intensity={0.8} />
-        
+
         <Stars />
         
         {/* Cometas con delays diferentes y más dinámicos */}
