@@ -78,21 +78,29 @@ function HomePage() {
 }
 
 function App() {
-  const [isLoading, setIsLoading] = useState(false); // TEMPORARILY DISABLED
+  const [isLoading, setIsLoading] = useState(true); // Enabled for dramatic entrance
 
   return (
     <>
       {isLoading && <Preloader onComplete={() => setIsLoading(false)} />}
-      <Router>
-        <SmoothScroll>
-          <TransitionProvider>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/projects" element={<ProjectsGSAP />} />
-            </Routes>
-          </TransitionProvider>
-        </SmoothScroll>
-      </Router>
+      {!isLoading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, ease: 'easeOut' }}
+        >
+          <Router>
+            <SmoothScroll>
+              <TransitionProvider>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/projects" element={<ProjectsGSAP />} />
+                </Routes>
+              </TransitionProvider>
+            </SmoothScroll>
+          </Router>
+        </motion.div>
+      )}
     </>
   )
 }

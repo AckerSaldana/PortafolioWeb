@@ -17,9 +17,9 @@ const AboutMeGSAP = () => {
   const parallaxElementsRef = useRef([]);
 
   const [stats] = useState([
-    { label: 'Years Experience', value: 3, suffix: '+' },
-    { label: 'Projects Completed', value: 25, suffix: '+' },
-    { label: 'Technologies', value: 15, suffix: '+' },
+    { label: 'Years Experience', value: 2, suffix: '+' },
+    { label: 'Projects Completed', value: 20, suffix: '+' },
+    { label: 'Technologies', value: 10, suffix: '+' },
   ]);
 
   // Parallax effect on scroll

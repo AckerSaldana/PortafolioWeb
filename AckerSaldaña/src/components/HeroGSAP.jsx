@@ -110,73 +110,98 @@ const HeroGSAP = () => {
       return;
     }
 
-    // Skip character animation for the new name layout
-    // The name is already visible via inline styles
-
-    // Set initial states for elements that will animate in
-    gsap.set([greetingRef.current, roleRef.current, descriptionRef.current], {
+    // Set initial states for award-winning entrance sequence
+    // NAME COMES FIRST - most important element
+    gsap.set(nameRef.current, {
       opacity: 0,
-      y: 30,
+      scale: 1.1,
+      y: 40,
+      filter: 'blur(20px)',
+    });
+
+    gsap.set(greetingRef.current, {
+      opacity: 0,
+      x: -30,
+    });
+
+    gsap.set([roleRef.current, descriptionRef.current], {
+      opacity: 0,
+      y: 40,
+      filter: 'blur(8px)',
     });
 
     gsap.set(buttonsRef.current.children || [], {
       opacity: 0,
-      y: 20,
+      y: 30,
+      scale: 0.9,
     });
 
     gsap.set(arrowRef.current, {
       opacity: 0,
+      scale: 0,
     });
 
-    // Create master timeline
+    // Create master timeline - NAME FIRST for maximum impact
     const tl = gsap.timeline({
       delay: 0.3,
     });
 
-    // Animate greeting
-    tl.to(greetingRef.current, {
+    // 1. NAME - Hero entrance with dramatic scale + blur reveal
+    tl.to(nameRef.current, {
       opacity: 1,
+      scale: 1,
       y: 0,
-      duration: 0.6,
-      ease: customEases.smooth,
+      filter: 'blur(0px)',
+      duration: 1.4,
+      ease: 'power4.out',
     });
 
-    // Name is now always visible - no animation needed
+    // 2. GREETING - Quick slide in from left
+    tl.to(greetingRef.current, {
+      opacity: 1,
+      x: 0,
+      duration: 0.6,
+      ease: 'power3.out',
+    }, '-=0.8');
 
-    // Animate role
+    // 3. ROLE - Fade up with blur
     tl.to(roleRef.current, {
       opacity: 1,
       y: 0,
-      duration: 0.6,
-      ease: customEases.smooth,
+      filter: 'blur(0px)',
+      duration: 0.8,
+      ease: 'power3.out',
     }, '-=0.3');
 
-    // Animate description
+    // 4. DESCRIPTION - Smooth fade up
     tl.to(descriptionRef.current, {
       opacity: 1,
       y: 0,
-      duration: 0.6,
-      ease: customEases.smooth,
-    }, '-=0.2');
+      filter: 'blur(0px)',
+      duration: 0.8,
+      ease: 'power2.out',
+    }, '-=0.4');
 
-    // Animate buttons
+    // 5. BUTTONS - Staggered pop-in with bounce
     const buttons = Array.from(buttonsRef.current?.children || []);
     if (buttons.length > 0) {
       tl.to(buttons, {
         opacity: 1,
         y: 0,
-        duration: 0.5,
-        stagger: 0.1,
-        ease: customEases.bounce,
-      }, '-=0.1');
+        scale: 1,
+        duration: 0.7,
+        stagger: 0.12,
+        ease: 'back.out(1.7)',
+      }, '-=0.3');
     }
 
-    // Animate arrow
+    // 6. ARROW - Final elastic bounce
     tl.to(arrowRef.current, {
       opacity: 1,
-      duration: 0.5,
-      ease: customEases.smooth,
-    }, '-=0.2');
+      scale: 1,
+      duration: 0.9,
+      ease: 'elastic.out(1, 0.5)',
+    }, '-=0.4');
 
     // Arrow bounce animation
     gsap.to(arrowRef.current, {
@@ -406,7 +431,7 @@ const HeroGSAP = () => {
         <h2
           ref={greetingRef}
           className="text-sm md:text-base font-['JetBrains_Mono'] text-[#4a9eff] mb-6 md:mb-8 tracking-[0.25em] uppercase font-medium"
-          style={{ opacity: 1 }}
+          style={{ willChange: 'transform, opacity' }}
         >
           {'<'} Hello, I'm {'/>'}
         </h2>
@@ -418,10 +443,10 @@ const HeroGSAP = () => {
           style={{
             fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
             color: '#ffffff',
-            opacity: 1,
             textRendering: 'optimizeLegibility',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
+            willChange: 'transform, opacity, filter',
           }}
         >
           <span className="block">Acker</span>
@@ -443,7 +468,7 @@ const HeroGSAP = () => {
           <p
             ref={roleRef}
             className="text-2xl md:text-3xl lg:text-4xl text-[#e0e0e0] font-['Inter'] font-medium ml-6 relative"
-            style={{ opacity: 1 }}
+            style={{ willChange: 'transform, opacity, filter' }}
           >
             {roles[currentRole]}
           </p>
@@ -453,7 +478,7 @@ const HeroGSAP = () => {
         <p
           ref={descriptionRef}
           className="text-xl md:text-2xl text-gray-300 max-w-3xl mb-16 md:mb-20 leading-relaxed"
-          style={{ opacity: 1 }}
+          style={{ willChange: 'transform, opacity, filter' }}
         >
           Crafting <span className="text-[#4a9eff] font-semibold">elegant solutions</span> to complex problems.
           Passionate about clean code, innovative design, and building experiences that make a{' '}

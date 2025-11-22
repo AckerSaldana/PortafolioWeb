@@ -1,203 +1,208 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { customEases, durations } from '../utils/gsapConfig';
-import { splitTextToChars } from '../utils/textAnimations';
 
 /**
- * Sophisticated preloader component with award-winning loading sequence
- * Features: Counter animation, text reveal, progress bar, dramatic exit
+ * Award-winning preloader with dramatic entrance
+ * Inspired by Awwwards Site of the Year aesthetics
  */
 export default function Preloader({ onComplete }) {
   const preloaderRef = useRef(null);
   const counterRef = useRef(null);
-  const nameRef = useRef(null);
-  const progressBarRef = useRef(null);
-  const overlayRef = useRef(null);
-  const [isReady, setIsReady] = useState(false);
+  const textRef = useRef(null);
+  const curtainLeftRef = useRef(null);
+  const curtainRightRef = useRef(null);
+  const orbitRef = useRef(null);
 
   useEffect(() => {
-    // Prepare text for character-by-character animation
-    if (nameRef.current && !isReady) {
-      const text = nameRef.current.textContent;
-      nameRef.current.innerHTML = splitTextToChars(text);
-      setIsReady(true);
-    }
-  }, [isReady]);
-
-  useEffect(() => {
-    if (!isReady) return;
-
-    // Failsafe: always complete after 4 seconds
+    // Failsafe: always complete after 4.5 seconds
     const failsafeTimer = setTimeout(() => {
-      console.log('Preloader failsafe triggered');
       if (onComplete) onComplete();
-    }, 4000);
+    }, 4500);
 
-    // Create master timeline for loading sequence
+    // Create master timeline
     const tl = gsap.timeline({
       onComplete: () => {
         clearTimeout(failsafeTimer);
         if (onComplete) onComplete();
-        // Remove from DOM after animation completes
-        setTimeout(() => {
-          if (preloaderRef.current) {
-            preloaderRef.current.remove();
-          }
-        }, 500);
       },
     });
 
-    // Animated counter object
+    // Animated counter
     const counter = { value: 0 };
 
-    // Step 1: Counter animation (0-100%) - FASTER for testing
+    // Stage 1: Counter animation with easing (0-2s)
     tl.to(counter, {
       value: 100,
-      duration: 1.5, // Reduced from 2.5
+      duration: 2,
       ease: 'power2.inOut',
       onUpdate: () => {
         if (counterRef.current) {
-          counterRef.current.textContent = Math.floor(counter.value) + '%';
+          const val = Math.floor(counter.value);
+          counterRef.current.textContent = val.toString().padStart(2, '0');
         }
       },
     });
 
-    // Step 2: Progress bar fill (runs simultaneously with counter)
+    // Orbit rotation (continuous during loading)
     tl.to(
-      progressBarRef.current,
+      orbitRef.current,
       {
-        scaleX: 1,
-        duration: 1.5, // Reduced from 2.5
-        ease: 'power2.inOut',
+        rotation: 360,
+        duration: 2,
+        ease: 'none',
+        repeat: -1,
       },
-      0 // Start at beginning
+      0
     );
 
-    // Step 3: Name reveal character by character (starts at 40% of loading)
+    // Text fade in
     tl.fromTo(
-      gsap.utils.toArray(`${nameRef.current} .char`),
-      {
-        opacity: 0,
-        y: 30,
-        rotationX: -90,
-      },
+      textRef.current,
+      { opacity: 0, y: 20 },
       {
         opacity: 1,
         y: 0,
-        rotationX: 0,
-        duration: 0.6,
-        stagger: 0.03,
-        ease: customEases.bounce,
+        duration: 0.8,
+        ease: 'power2.out',
       },
-      1 // Start at 1 second
+      0.5
     );
 
-    // Step 4: Pause briefly at 100%
-    tl.to({}, { duration: 0.3 });
+    // Stage 2: Pause at 100%
+    tl.to({}, { duration: 0.4 });
 
-    // Step 5: Scale up counter before exit
+    // Stage 3: Counter scale out
     tl.to(counterRef.current, {
-      scale: 1.2,
+      scale: 1.5,
       opacity: 0,
-      duration: 0.4,
-      ease: customEases.smooth,
+      duration: 0.6,
+      ease: 'power3.in',
     });
 
-    // Step 6: Exit animation - split screen reveal
+    // Stage 4: Curtain reveal - dramatic split
     tl.to(
-      [overlayRef.current?.children[0], overlayRef.current?.children[1]],
+      curtainLeftRef.current,
       {
-        scaleY: 0,
-        duration: 1.2,
-        stagger: 0.1,
-        ease: customEases.dramatic,
-        transformOrigin: 'top',
-      },
-      '-=0.2'
-    );
-
-    // Step 7: Fade out entire preloader
-    tl.to(
-      preloaderRef.current,
-      {
-        opacity: 0,
-        duration: 0.5,
-        ease: customEases.smooth,
+        x: '-100%',
+        duration: 1.4,
+        ease: 'power4.inOut',
       },
       '-=0.3'
     );
 
-    // Cleanup
+    tl.to(
+      curtainRightRef.current,
+      {
+        x: '100%',
+        duration: 1.4,
+        ease: 'power4.inOut',
+      },
+      '<'
+    );
+
+    // Stage 5: Final fade
+    tl.to(
+      preloaderRef.current,
+      {
+        opacity: 0,
+        duration: 0.4,
+        ease: 'power2.inOut',
+      },
+      '-=0.4'
+    );
+
     return () => {
       clearTimeout(failsafeTimer);
       tl.kill();
     };
-  }, [isReady, onComplete]);
+  }, [onComplete]);
 
   return (
     <div
       ref={preloaderRef}
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-midnight pointer-events-none"
+      className="fixed inset-0 z-[9999] pointer-events-none"
       style={{ willChange: 'opacity' }}
     >
-      {/* Split screen overlay for dramatic exit */}
+      {/* Curtain left */}
       <div
-        ref={overlayRef}
-        className="absolute inset-0 flex flex-col"
+        ref={curtainLeftRef}
+        className="absolute top-0 left-0 bottom-0 w-1/2 bg-black"
         style={{ willChange: 'transform' }}
-      >
-        <div className="flex-1 bg-midnight" style={{ transformOrigin: 'top' }} />
-        <div className="flex-1 bg-midnight" style={{ transformOrigin: 'bottom' }} />
-      </div>
+      />
 
-      {/* Main content */}
-      <div className="relative z-10 text-center px-8">
-        {/* Animated counter */}
-        <div
-          ref={counterRef}
-          className="text-6xl md:text-8xl font-bold text-accent mb-8"
-          style={{
-            fontFamily: 'var(--font-mono)',
-            willChange: 'transform, opacity',
-          }}
-        >
-          0%
-        </div>
+      {/* Curtain right */}
+      <div
+        ref={curtainRightRef}
+        className="absolute top-0 right-0 bottom-0 w-1/2 bg-black"
+        style={{ willChange: 'transform' }}
+      />
 
-        {/* Name reveal */}
-        <div
-          ref={nameRef}
-          className="text-3xl md:text-5xl font-bold text-pearl mb-12"
-          style={{
-            fontFamily: 'var(--font-mono)',
-            perspective: '1000px',
-          }}
-        >
-          ACKER SALDAÑA
-        </div>
-
-        {/* Progress bar container */}
-        <div className="w-64 md:w-96 h-1 bg-charcoal rounded-full overflow-hidden mx-auto relative">
-          {/* Glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent/30 to-transparent blur-lg" />
-
-          {/* Progress bar fill */}
+      {/* Main content - centered */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative text-center">
+          {/* Rotating orbit ring */}
           <div
-            ref={progressBarRef}
-            className="h-full bg-accent rounded-full origin-left"
-            style={{
-              transform: 'scaleX(0)',
-              willChange: 'transform',
-              boxShadow: '0 0 20px rgba(74, 158, 255, 0.8)',
-            }}
-          />
-        </div>
+            ref={orbitRef}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 md:w-56 md:h-56 pointer-events-none"
+            style={{ willChange: 'transform' }}
+          >
+            <svg
+              width="100%"
+              height="100%"
+              viewBox="0 0 200 200"
+              className="opacity-20"
+            >
+              <circle
+                cx="100"
+                cy="100"
+                r="90"
+                fill="none"
+                stroke="url(#gradient)"
+                strokeWidth="1"
+                strokeDasharray="4 4"
+              />
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#4a9eff" />
+                  <stop offset="50%" stopColor="#7b61ff" />
+                  <stop offset="100%" stopColor="#4aefff" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
 
-        {/* Loading text */}
-        <div className="mt-6 text-silver text-sm tracking-widest">
-          LOADING EXPERIENCE...
+          {/* Counter */}
+          <div
+            ref={counterRef}
+            className="text-[20vw] md:text-[15vw] lg:text-[12vw] font-black leading-none mb-4"
+            style={{
+              background: 'linear-gradient(135deg, #4a9eff 0%, #7b61ff 50%, #4aefff 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              fontFamily: 'var(--font-mono)',
+              willChange: 'transform, opacity',
+            }}
+          >
+            00
+          </div>
+
+          {/* Loading text */}
+          <div
+            ref={textRef}
+            className="text-white/40 text-xs md:text-sm tracking-[0.3em] font-light uppercase"
+            style={{ fontFamily: 'var(--font-sans)' }}
+          >
+            Loading Experience
+          </div>
         </div>
       </div>
+
+      {/* Corner accents */}
+      <div className="absolute top-8 left-8 w-12 h-12 border-l border-t border-white/10" />
+      <div className="absolute top-8 right-8 w-12 h-12 border-r border-t border-white/10" />
+      <div className="absolute bottom-8 left-8 w-12 h-12 border-l border-b border-white/10" />
+      <div className="absolute bottom-8 right-8 w-12 h-12 border-r border-b border-white/10" />
     </div>
   );
 }

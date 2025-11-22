@@ -22,6 +22,17 @@ const TVScreen3D = () => {
   const audioContextRef = useRef(null);
   const terminalOutputRef = useRef(null);
   const inputLineRef = useRef(null);
+  const pongCanvasRef = useRef(null);
+  const pongReqRef = useRef(null);
+  const pongStateRef = useRef({
+    ball: { x: 200, y: 150, dx: 1.2, dy: 1.2, size: 6 },
+    p1: { y: 130, height: 40, dir: 0, score: 0 },
+    p2: { y: 130, height: 40, score: 0 }
+  });
+  const matrixCanvasRef = useRef(null);
+  const matrixReqRef = useRef(null);
+  const matrixDropsRef = useRef(null);
+  const watchIntervalRef = useRef(null);
 
   // Mouse tracking for 3D rotation
   useEffect(() => {
@@ -95,24 +106,31 @@ const TVScreen3D = () => {
       }
       playTone(600, 'sine', 0.5);
       setTimeout(() => {
-        if (newPowerState) setCurrentChannel(0); // Channel 0 is now terminal
+        if (newPowerState) setCurrentChannel(0); // Channel 0 is terminal
       }, 1500);
     } else {
       if (screenContentRef.current) {
         screenContentRef.current.classList.remove('on');
         screenContentRef.current.classList.add('off');
       }
-      stopNoise();
+      stopAllChannels();
     }
   };
 
-  // Channel management - only 2 channels now (0: terminal, 1: static)
+  // Channel management - 6 channels (0: terminal, 1: static, 2: pong, 3: color bars, 4: matrix, 5: watch)
   const changeChannel = (dir, e) => {
     if (e) e.preventDefault();
     if (!isPowerOn) return;
     playTone(150);
+    stopAllChannels();
+    setCurrentChannel((prev) => (prev + dir + 6) % 6);
+  };
+
+  const stopAllChannels = () => {
     stopNoise();
-    setCurrentChannel((prev) => (prev + dir + 2) % 2);
+    stopPong();
+    stopMatrix();
+    stopWatch();
   };
 
   // Static noise effect
@@ -143,6 +161,203 @@ const TVScreen3D = () => {
     }
   };
 
+  // Pong Game
+  const startPong = () => {
+    const canvas = pongCanvasRef.current;
+    if (!canvas) return;
+
+    canvas.width = 400;
+    canvas.height = 300;
+
+    // Reset state
+    pongStateRef.current = {
+      ball: { x: 200, y: 150, dx: 1.2, dy: 1.2, size: 6 },
+      p1: { y: 130, height: 40, dir: 0, score: 0 },
+      p2: { y: 130, height: 40, score: 0 }
+    };
+
+    const ctx = canvas.getContext('2d');
+
+    const loop = () => {
+      updatePong(canvas, ctx);
+      drawPong(canvas, ctx);
+      pongReqRef.current = requestAnimationFrame(loop);
+    };
+    loop();
+  };
+
+  const updatePong = (canvas, ctx) => {
+    const s = pongStateRef.current;
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Player 1 movement
+    s.p1.y = Math.max(0, Math.min(h - s.p1.height, s.p1.y + s.p1.dir * 4));
+
+    // AI Player 2 movement
+    const target = s.ball.y - s.p2.height / 2;
+    if (target > s.p2.y + 5) s.p2.y += 2.5;
+    else if (target < s.p2.y - 5) s.p2.y -= 2.5;
+    s.p2.y = Math.max(0, Math.min(h - s.p2.height, s.p2.y));
+
+    // Ball movement
+    s.ball.x += s.ball.dx;
+    s.ball.y += s.ball.dy;
+
+    // Ball collision with top/bottom
+    if (s.ball.y < 0 || s.ball.y > h) {
+      s.ball.dy *= -1;
+      playTone(200);
+    }
+
+    // Ball collision with paddles
+    if (s.ball.x < 20 && s.ball.y > s.p1.y && s.ball.y < s.p1.y + s.p1.height) {
+      s.ball.dx = Math.abs(s.ball.dx) + 0.1;
+      playTone(400);
+    }
+    if (s.ball.x > w - 20 && s.ball.y > s.p2.y && s.ball.y < s.p2.y + s.p2.height) {
+      s.ball.dx = -(Math.abs(s.ball.dx) + 0.1);
+      playTone(400);
+    }
+
+    // Scoring
+    if (s.ball.x < 0) {
+      s.p2.score++;
+      resetBall();
+      playTone(100, 'sawtooth', 0.4);
+    }
+    if (s.ball.x > w) {
+      s.p1.score++;
+      resetBall();
+      playTone(600, 'sawtooth', 0.2);
+    }
+  };
+
+  const resetBall = () => {
+    const s = pongStateRef.current;
+    s.ball.x = 200;
+    s.ball.y = 150;
+    s.ball.dx = Math.random() > 0.5 ? 1.2 : -1.2;
+    s.ball.dy = Math.random() > 0.5 ? 1.2 : -1.2;
+  };
+
+  const drawPong = (canvas, ctx) => {
+    const s = pongStateRef.current;
+
+    // Clear canvas
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw ball
+    ctx.fillStyle = 'white';
+    ctx.fillRect(s.ball.x, s.ball.y, s.ball.size, s.ball.size);
+
+    // Draw paddles
+    ctx.fillRect(10, s.p1.y, 10, s.p1.height);
+    ctx.fillRect(380, s.p2.y, 10, s.p2.height);
+
+    // Draw score
+    ctx.font = '48px monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${s.p1.score} - ${s.p2.score}`, canvas.width / 2, 60);
+  };
+
+  const stopPong = () => {
+    if (pongReqRef.current) {
+      cancelAnimationFrame(pongReqRef.current);
+    }
+    // Reset player direction
+    if (pongStateRef.current) {
+      pongStateRef.current.p1.dir = 0;
+    }
+  };
+
+  // Matrix Rain
+  const startMatrix = () => {
+    const canvas = matrixCanvasRef.current;
+    if (!canvas) return;
+
+    canvas.width = canvas.offsetWidth || 580;
+    canvas.height = canvas.offsetHeight || 420;
+
+    const ctx = canvas.getContext('2d');
+    const fontSize = 14;
+    const columns = Math.floor(canvas.width / fontSize);
+    matrixDropsRef.current = new Array(columns).fill(1);
+
+    const drawMatrix = () => {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#0F0';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < matrixDropsRef.current.length; i++) {
+        const text = String.fromCharCode(0x30a0 + Math.random() * 96);
+        ctx.fillText(text, i * fontSize, matrixDropsRef.current[i] * fontSize);
+
+        if (matrixDropsRef.current[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          matrixDropsRef.current[i] = 0;
+        }
+        matrixDropsRef.current[i]++;
+      }
+
+      matrixReqRef.current = requestAnimationFrame(drawMatrix);
+    };
+    drawMatrix();
+  };
+
+  const stopMatrix = () => {
+    if (matrixReqRef.current) {
+      cancelAnimationFrame(matrixReqRef.current);
+    }
+  };
+
+  // Watch/Clock
+  const startWatch = () => {
+    const updateTime = () => {
+      const now = new Date();
+
+      // Time
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const timeStr = `${hours}:${minutes}:${seconds}`;
+
+      // Date
+      const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+                      'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+      const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+
+      const month = months[now.getMonth()];
+      const date = String(now.getDate()).padStart(2, '0');
+      const year = now.getFullYear();
+      const day = days[now.getDay()];
+
+      const dateStr = `${month} ${date}, ${year}`;
+
+      // Update DOM
+      const timeEl = document.getElementById('watch-time');
+      const dateEl = document.getElementById('watch-date');
+      const dayEl = document.getElementById('watch-day');
+
+      if (timeEl) timeEl.textContent = timeStr;
+      if (dateEl) dateEl.textContent = dateStr;
+      if (dayEl) dayEl.textContent = day;
+    };
+
+    updateTime(); // Initial update
+    watchIntervalRef.current = setInterval(updateTime, 1000);
+  };
+
+  const stopWatch = () => {
+    if (watchIntervalRef.current) {
+      clearInterval(watchIntervalRef.current);
+      watchIntervalRef.current = null;
+    }
+  };
+
   // Terminal
   const focusTerminal = (e) => {
     if (e) e.preventDefault();
@@ -156,7 +371,7 @@ const TVScreen3D = () => {
     const newLines = [...terminalLines, `> ${cmd}`];
 
     if (c === 'HELP') {
-      newLines.push('COMMANDS: HELP, CLEAR, PROJECTS, ABOUT');
+      newLines.push('COMMANDS: HELP, CLEAR, PROJECTS, ABOUT, PONG');
     } else if (c === 'CLEAR') {
       setTerminalLines([]);
       return;
@@ -168,6 +383,11 @@ const TVScreen3D = () => {
     } else if (c === 'ABOUT') {
       newLines.push('Software Engineer & Full Stack Developer');
       newLines.push('Passionate about clean code and innovation');
+    } else if (c === 'PONG') {
+      newLines.push('LOADING GAME...');
+      setTerminalLines(newLines);
+      setTimeout(() => setCurrentChannel(2), 800);
+      return;
     } else {
       newLines.push('UNKNOWN COMMAND');
     }
@@ -190,7 +410,23 @@ const TVScreen3D = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (!isPowerOn || currentChannel !== 0) return; // Terminal is now channel 0
+      if (!isPowerOn) return;
+
+      // Pong controls
+      if (currentChannel === 2) {
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          pongStateRef.current.p1.dir = -1;
+        }
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          pongStateRef.current.p1.dir = 1;
+        }
+        return;
+      }
+
+      // Terminal controls
+      if (currentChannel !== 0) return;
 
       // Prevent default for terminal-related keys to avoid scrolling
       if (['Enter', 'Backspace', 'ArrowUp', 'ArrowDown', 'Space'].includes(e.key) || e.key.length === 1) {
@@ -213,25 +449,40 @@ const TVScreen3D = () => {
       }
     };
 
+    const handleKeyUp = (e) => {
+      if (!isPowerOn || currentChannel !== 2) return;
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        pongStateRef.current.p1.dir = 0;
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
   }, [isPowerOn, currentChannel, terminalInput, terminalLines]);
 
   // Channel effects
   useEffect(() => {
     if (!isPowerOn) return;
 
-    if (currentChannel === 1) {
-      startNoise(); // Static is now channel 1
-    } else {
-      stopNoise();
-    }
+    stopAllChannels();
 
     if (currentChannel === 0) {
-      focusTerminal(); // Terminal is now channel 0
+      focusTerminal(); // Terminal
+    } else if (currentChannel === 1) {
+      startNoise(); // Static
+    } else if (currentChannel === 2) {
+      startPong(); // Pong
+    } else if (currentChannel === 4) {
+      startMatrix(); // Matrix (channel 3 is color bars, no start needed)
+    } else if (currentChannel === 5) {
+      startWatch(); // Watch
     }
 
-    return () => stopNoise();
+    return () => stopAllChannels();
   }, [currentChannel, isPowerOn]);
 
   return (
@@ -282,6 +533,72 @@ const TVScreen3D = () => {
                   </div>
                 </div>
 
+                {/* Channel 2: Pong */}
+                <div
+                  className={`channel-view ${currentChannel === 2 ? 'active' : ''}`}
+                  style={{ display: currentChannel === 2 ? 'block' : 'none' }}
+                >
+                  <div className="pong-container">
+                    <canvas ref={pongCanvasRef} className="pong-canvas" />
+                    <div className="pong-hint">USE ARROW KEYS</div>
+                  </div>
+                </div>
+
+                {/* Channel 3: Color Bars */}
+                <div
+                  className={`channel-view ${currentChannel === 3 ? 'active' : ''}`}
+                  style={{ display: currentChannel === 3 ? 'block' : 'none' }}
+                >
+                  <div className="color-bars">
+                    <div className="cb-row-1">
+                      <div className="cb-cell" style={{ background: '#c0c0c0' }} />
+                      <div className="cb-cell" style={{ background: '#c0c000' }} />
+                      <div className="cb-cell" style={{ background: '#00c0c0' }} />
+                      <div className="cb-cell" style={{ background: '#00c000' }} />
+                      <div className="cb-cell" style={{ background: '#c000c0' }} />
+                      <div className="cb-cell" style={{ background: '#c00000' }} />
+                      <div className="cb-cell" style={{ background: '#0000c0' }} />
+                    </div>
+                    <div className="cb-row-2">
+                      <div className="cb-cell" style={{ background: '#0000c0' }} />
+                      <div className="cb-cell" style={{ background: '#131313' }} />
+                      <div className="cb-cell" style={{ background: '#c000c0' }} />
+                      <div className="cb-cell" style={{ background: '#131313' }} />
+                      <div className="cb-cell" style={{ background: '#00c0c0' }} />
+                      <div className="cb-cell" style={{ background: '#131313' }} />
+                      <div className="cb-cell" style={{ background: '#c0c0c0' }} />
+                    </div>
+                    <div className="cb-row-3">
+                      <div className="cb-cell" style={{ background: '#00214c', flex: '1.25' }} />
+                      <div className="cb-cell" style={{ background: '#ffffff', flex: '1.25' }} />
+                      <div className="cb-cell" style={{ background: '#320063', flex: '1.25' }} />
+                      <div className="cb-cell" style={{ background: '#131313', flex: '3.25' }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Channel 4: Matrix */}
+                <div
+                  className={`channel-view ${currentChannel === 4 ? 'active' : ''}`}
+                  style={{ display: currentChannel === 4 ? 'block' : 'none' }}
+                >
+                  <canvas ref={matrixCanvasRef} className="matrix-canvas" />
+                </div>
+
+                {/* Channel 5: Watch */}
+                <div
+                  className={`channel-view ${currentChannel === 5 ? 'active' : ''}`}
+                  style={{ display: currentChannel === 5 ? 'block' : 'none' }}
+                >
+                  <div className="watch-container">
+                    <div className="watch-display">
+                      <div className="watch-time" id="watch-time">00:00:00</div>
+                      <div className="watch-date" id="watch-date">MONTH 00, 0000</div>
+                      <div className="watch-day" id="watch-day">DAY</div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -292,7 +609,7 @@ const TVScreen3D = () => {
               <div className={`led ${isPowerOn ? 'on' : ''}`} />
               <button className="power-btn cursor-target" onClick={togglePower} title="Power" />
             </div>
-            <div className="brand-text">RETRO TERMINAL</div>
+            <div className="brand-text">SONY TRINITRON</div>
             <div className="controls-right">
               <button
                 onClick={(e) => changeChannel(-1, e)}
@@ -312,15 +629,30 @@ const TVScreen3D = () => {
 
         {/* BACK FACE */}
         <div className="face face-back">
-          <div className="back-panel">
-            <div className="back-text">
-              MODEL: NO. 334-A<br />
-              SERIAL: 893-XK-22<br />
-              INPUT: 120V ~ 60Hz
-            </div>
-            <div className="back-ports">
-              <div className="port" />
-              <div className="port" />
+          <div className="back-housing">
+            <div className="back-housing-inner">
+              {/* Vents */}
+              <div className="back-vents">
+                <div className="vent-line" />
+                <div className="vent-line" />
+                <div className="vent-line" />
+              </div>
+
+              {/* Label */}
+              <div className="back-label">
+                <div className="back-text">
+                  MODEL: PVM-20L5<br />
+                  SERIAL: 893-XK-22<br />
+                  100-240V ~ 50/60Hz<br />
+                  MADE IN JAPAN
+                </div>
+              </div>
+
+              {/* Ports */}
+              <div className="back-ports">
+                <div className="port" />
+                <div className="port" />
+              </div>
             </div>
           </div>
         </div>
@@ -329,7 +661,16 @@ const TVScreen3D = () => {
         <div className="face face-right" />
         <div className="face face-left" />
         <div className="face face-top" />
-        <div className="face face-bottom" />
+        <div className="face face-bottom">
+          <div className="foot" style={{ top: '20px', left: '20px' }} />
+          <div className="foot" style={{ top: '20px', right: '20px' }} />
+          <div className="foot" style={{ bottom: '20px', left: '20px' }} />
+          <div className="foot" style={{ bottom: '20px', right: '20px' }} />
+        </div>
+
+        {/* SHADOWS & EFFECTS */}
+        <div className="floor-shadow" />
+        <div className={`glow-shadow ${isPowerOn ? 'on' : ''}`} />
       </div>
     </div>
   );

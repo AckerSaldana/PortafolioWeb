@@ -49,7 +49,7 @@ const Window = ({
       // Center on mobile
       setPosition({
         x: (windowSize.width - dimensions.width) / 2,
-        y: Math.max(10, (windowSize.height - dimensions.height - 48) / 2),
+        y: Math.max(0, (windowSize.height - dimensions.height - 48) / 2),
       });
     } else if (isTablet) {
       // Adjust position to fit in viewport
@@ -64,8 +64,8 @@ const Window = ({
     // Entrance animation
     gsap.fromTo(
       windowRef.current,
-      { opacity: 0, scale: 0.95, y: position.y + 20 },
-      { opacity: 1, scale: 1, y: position.y, duration: 0.3, ease: 'power2.out' }
+      { opacity: 0, scale: 0.95, y: 20 },
+      { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'power2.out' }
     );
   }, []);
 
@@ -102,10 +102,11 @@ const Window = ({
       // Boundary checks
       const maxX = windowSize.width - dimensions.width;
       const maxY = windowSize.height - dimensions.height - 48; // Account for taskbar
+      const minY = 0; // Allow windows to reach the top of the viewport
 
       setPosition({
         x: Math.max(0, Math.min(newX, maxX)),
-        y: Math.max(0, Math.min(newY, maxY))
+        y: Math.max(minY, Math.min(newY, maxY))
       });
     };
 
@@ -119,10 +120,11 @@ const Window = ({
       // Boundary checks
       const maxX = windowSize.width - dimensions.width;
       const maxY = windowSize.height - dimensions.height - 48;
+      const minY = 0; // Allow windows to reach the top of the viewport
 
       setPosition({
         x: Math.max(0, Math.min(newX, maxX)),
-        y: Math.max(0, Math.min(newY, maxY))
+        y: Math.max(minY, Math.min(newY, maxY))
       });
     };
 

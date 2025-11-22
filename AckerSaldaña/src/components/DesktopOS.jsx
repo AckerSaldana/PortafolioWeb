@@ -19,8 +19,10 @@ const DesktopOS = () => {
   const [showStartMenu, setShowStartMenu] = useState(false);
   const [isShuttingDown, setIsShuttingDown] = useState(false);
   const [shutdownLines, setShutdownLines] = useState([]);
+  const [selectedIcon, setSelectedIcon] = useState(null);
   const zIndexCounter = useRef(100);
   const shutdownRef = useRef(null);
+  const desktopRef = useRef(null);
 
   // Calculate responsive initial positions based on viewport
   const getResponsivePosition = (index) => {
@@ -159,6 +161,12 @@ const DesktopOS = () => {
 
   const handleDesktopIconClick = (appId) => {
     openWindow(appId);
+    setSelectedIcon(null); // Clear selection when opening
+  };
+
+  const handleDesktopIconSelect = (e, appId) => {
+    e.stopPropagation();
+    setSelectedIcon(appId);
   };
 
   const handleShutdown = () => {
@@ -209,6 +217,18 @@ const DesktopOS = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showStartMenu]);
+
+  // Clear icon selection when clicking on desktop
+  useEffect(() => {
+    const handleDesktopClick = (e) => {
+      if (desktopRef.current && e.target === desktopRef.current) {
+        setSelectedIcon(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleDesktopClick);
+    return () => document.removeEventListener('mousedown', handleDesktopClick);
+  }, []);
 
   // Shutdown screen
   if (isShuttingDown) {
@@ -300,24 +320,40 @@ const DesktopOS = () => {
       />
 
       {/* Desktop Area */}
-      <div className={`absolute top-0 left-0 right-0 z-10 ${isMobile ? 'bottom-16 p-3' : 'bottom-12 p-5'}`}>
+      <div
+        ref={desktopRef}
+        className={`absolute top-0 left-0 right-0 z-10 ${isMobile ? 'bottom-16 p-3' : 'bottom-12 p-5'}`}
+      >
         {/* Desktop Icons - Responsive Grid */}
         <div className={`grid gap-3 ${
           isMobile ? 'grid-cols-3' : isTablet ? 'grid-cols-4' : 'flex flex-wrap content-start gap-5'
         }`}>
           {Object.keys(apps).map((appId) => {
             const app = apps[appId];
+            const isSelected = selectedIcon === appId;
             return (
               <div
                 key={appId}
-                className={`flex flex-col items-center cursor-pointer p-2 rounded hover:bg-white/5 transition-all ${
+                className={`flex flex-col items-center cursor-pointer p-2 rounded transition-all ${
                   isMobile ? 'w-full' : 'w-20'
+                } ${
+                  isSelected
+                    ? 'bg-[#0affc2]/20 border border-[#0affc2]/40'
+                    : 'hover:bg-white/5 border border-transparent'
                 }`}
                 onDoubleClick={() => handleDesktopIconClick(appId)}
-                onClick={isMobile ? () => handleDesktopIconClick(appId) : undefined}
+                onClick={(e) => {
+                  if (isMobile) {
+                    handleDesktopIconClick(appId);
+                  } else {
+                    handleDesktopIconSelect(e, appId);
+                  }
+                }}
               >
-                <div className={`mb-2 flex items-center justify-center bg-gradient-to-br from-[#2a303c] to-[#161b22] rounded-xl border border-white/8 shadow-lg text-[#0affc2] ${
+                <div className={`mb-2 flex items-center justify-center bg-gradient-to-br from-[#2a303c] to-[#161b22] rounded-xl border shadow-lg text-[#0affc2] ${
                   isMobile ? 'w-16 h-16 text-3xl' : 'w-12 h-12 text-2xl'
+                } ${
+                  isSelected ? 'border-[#0affc2]/60' : 'border-white/8'
                 }`}>
                   {app.icon}
                 </div>
