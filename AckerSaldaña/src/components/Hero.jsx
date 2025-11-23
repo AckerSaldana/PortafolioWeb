@@ -21,8 +21,8 @@ const Hero = () => {
       setShowArrow(window.scrollY < 50);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll, { passive: true });
   }, []);
 
   const roles = ['Software Engineer', 'Full Stack Developer', 'Problem Solver'];

@@ -54,9 +54,9 @@ const Navbar = () => {
       lastScrollY = currentScrollY;
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll(); // Check initial state
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll, { passive: true });
   }, [isProjectsPage]);
 
   const scrollToSection = (sectionId, e) => {

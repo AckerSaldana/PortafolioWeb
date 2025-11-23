@@ -33,6 +33,8 @@ const TVScreen3D = () => {
   const matrixReqRef = useRef(null);
   const matrixDropsRef = useRef(null);
   const watchIntervalRef = useRef(null);
+  const isVisibleRef = useRef(true);
+  const rotationRafRef = useRef(null);
 
   // Mouse tracking for 3D rotation
   useEffect(() => {
@@ -47,12 +49,15 @@ const TVScreen3D = () => {
     };
 
     const animateScene = () => {
-      currentRotateY += (mouseX - currentRotateY) * lerpSpeed;
-      currentRotateX += (mouseY - currentRotateX) * lerpSpeed;
-      if (monitorRef.current) {
-        monitorRef.current.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
+      // Only animate if visible (iPhone performance optimization)
+      if (isVisibleRef.current) {
+        currentRotateY += (mouseX - currentRotateY) * lerpSpeed;
+        currentRotateX += (mouseY - currentRotateX) * lerpSpeed;
+        if (monitorRef.current) {
+          monitorRef.current.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
+        }
       }
-      requestAnimationFrame(animateScene);
+      rotationRafRef.current = requestAnimationFrame(animateScene);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -60,6 +65,9 @@ const TVScreen3D = () => {
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
+      if (rotationRafRef.current) {
+        cancelAnimationFrame(rotationRafRef.current);
+      }
     };
   }, []);
 
@@ -484,6 +492,33 @@ const TVScreen3D = () => {
 
     return () => stopAllChannels();
   }, [currentChannel, isPowerOn]);
+
+  // Intersection Observer to pause 3D rotation when off-screen (iPhone performance)
+  useEffect(() => {
+    if (!monitorRef.current) return;
+
+    // Observe the monitor's parent container
+    const tvScene = monitorRef.current.closest('.tv-scene');
+    if (!tvScene) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisibleRef.current = entry.isIntersecting;
+        });
+      },
+      {
+        threshold: 0,
+        rootMargin: '50px',
+      }
+    );
+
+    observer.observe(tvScene);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   return (
     <div className="tv-scene">

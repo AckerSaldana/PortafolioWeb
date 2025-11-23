@@ -1,5 +1,5 @@
 import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
-import { useEffect, useRef, useMemo, useCallback } from "react";
+import { useEffect, useRef, useMemo, useCallback, memo } from "react";
 import "./FaultyTerminal.css";
 
 const vertexShader = `
@@ -233,7 +233,7 @@ function hexToRgb(hex) {
   ];
 }
 
-export default function FaultyTerminal({
+const FaultyTerminal = memo(function FaultyTerminal({
   scale = 1,
   gridMul = [2, 1],
   digitSize = 1.5,
@@ -267,6 +267,7 @@ export default function FaultyTerminal({
   const rafRef = useRef(0);
   const loadAnimationStartRef = useRef(0);
   const timeOffsetRef = useRef(Math.random() * 100);
+  const isVisibleRef = useRef(true);
 
   const tintVec = useMemo(() => hexToRgb(tint), [tint]);
 
@@ -355,6 +356,11 @@ export default function FaultyTerminal({
     const update = (t) => {
       rafRef.current = requestAnimationFrame(update);
 
+      // Skip rendering if off-screen (performance optimization for iPhone)
+      if (!isVisibleRef.current) {
+        return;
+      }
+
       if (pageLoadAnimation && loadAnimationStartRef.current === 0) {
         loadAnimationStartRef.current = t;
       }
@@ -426,6 +432,29 @@ export default function FaultyTerminal({
     handleMouseMove,
   ]);
 
+  // Intersection Observer to pause WebGL rendering when off-screen (iPhone performance)
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisibleRef.current = entry.isIntersecting;
+        });
+      },
+      {
+        threshold: 0,
+        rootMargin: '50px', // Start rendering slightly before visible
+      }
+    );
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <div
       ref={containerRef}
@@ -434,4 +463,6 @@ export default function FaultyTerminal({
       {...rest}
     />
   );
-}
+});
+
+export default FaultyTerminal;

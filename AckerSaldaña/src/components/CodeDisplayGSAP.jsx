@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import gsap from 'gsap';
 import { customEases } from '../utils/gsapConfig';
 
-const CodeDisplayGSAP = () => {
+const CodeDisplayGSAP = memo(function CodeDisplayGSAP() {
   const [typedCode, setTypedCode] = useState('');
   const [currentLine, setCurrentLine] = useState(0);
   const containerRef = useRef(null);
@@ -231,6 +231,6 @@ const CodeDisplayGSAP = () => {
       <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-[#7b61ff]/10 rounded-full blur-2xl pointer-events-none" />
     </div>
   );
-};
+});
 
 export default CodeDisplayGSAP;

@@ -296,6 +296,7 @@ class App {
     this.scrollSpeed = scrollSpeed;
     this.scroll = { ease: scrollEase, current: 0, target: 0, last: 0 };
     this.onCheckDebounce = debounce(this.onCheck, 200);
+    this.isVisible = true; // Track visibility for performance
     this.createRenderer();
     this.createCamera();
     this.createScene();
@@ -406,6 +407,13 @@ class App {
     }
   }
   update() {
+    this.raf = window.requestAnimationFrame(this.update.bind(this));
+
+    // Skip rendering if off-screen (performance optimization for iPhone)
+    if (!this.isVisible) {
+      return;
+    }
+
     this.scroll.current = lerp(this.scroll.current, this.scroll.target, this.scroll.ease);
     const direction = this.scroll.current > this.scroll.last ? "right" : "left";
     if (this.medias) {
@@ -413,7 +421,9 @@ class App {
     }
     this.renderer.render({ scene: this.scene, camera: this.camera });
     this.scroll.last = this.scroll.current;
-    this.raf = window.requestAnimationFrame(this.update.bind(this));
+  }
+  setVisibility(visible) {
+    this.isVisible = visible;
   }
   addEventListeners() {
     this.boundOnResize = this.onResize.bind(this);
@@ -458,11 +468,40 @@ export default function CircularGallery({
   scrollEase = 0.05,
 }) {
   const containerRef = useRef(null);
+  const appRef = useRef(null);
+
   useEffect(() => {
     const app = new App(containerRef.current, { items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase });
+    appRef.current = app;
     return () => {
       app.destroy();
     };
   }, [items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase]);
+
+  // Intersection Observer to pause rendering when off-screen (iPhone performance)
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (appRef.current) {
+            appRef.current.setVisibility(entry.isIntersecting);
+          }
+        });
+      },
+      {
+        threshold: 0,
+        rootMargin: '100px', // Start rendering before visible
+      }
+    );
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return <div className="circular-gallery" ref={containerRef} />;
 }

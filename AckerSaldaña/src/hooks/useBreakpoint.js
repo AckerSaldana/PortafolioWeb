@@ -44,7 +44,7 @@ const useBreakpoint = () => {
     let timeoutId;
     const debouncedResize = () => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(handleResize, 150);
+      timeoutId = setTimeout(handleResize, 250); // Increased from 150ms for iPhone performance
     };
 
     window.addEventListener('resize', debouncedResize);

@@ -12,11 +12,19 @@ import useDevicePerformance from '../hooks/useDevicePerformance';
 
 function Stars({ particleCount = 3000 }) {
   const meshRef = useRef();
+  const { isMobile } = useBreakpoint();
+
   // Memoize sphere generation so it only happens once on mount
   const sphere = useMemo(() => random.inSphere(new Float32Array(particleCount), { radius: 1.5 }), [particleCount]);
 
   // Store press state inside component
   const isPressed = useRef(false);
+
+  // Reusable color object to avoid creating new instances every frame
+  const colorRef = useRef(new THREE.Color());
+
+  // Frame counter for throttling color updates on mobile
+  const frameCountRef = useRef(0);
 
   // Animation state with scroll influence
   const animationState = useRef({
@@ -94,13 +102,19 @@ function Stars({ particleCount = 3000 }) {
     meshRef.current.rotation.y = animationState.current.rotationY;
     meshRef.current.rotation.z = animationState.current.rotationZ;
 
-    // Color shift based on scroll progress (subtle)
-    const scrollProgress = animationState.current.scrollProgress;
-    const hue = 200 + scrollProgress * 40; // Shift from blue (200) to cyan (240)
-    const color = new THREE.Color().setHSL(hue / 360, 1, 0.65);
+    // Throttle color updates on mobile (every 3 frames) - iPhone performance optimization
+    frameCountRef.current++;
+    const shouldUpdateColor = !isMobile || frameCountRef.current % 3 === 0;
 
-    if (meshRef.current.material && meshRef.current.material.color) {
-      meshRef.current.material.color.copy(color);
+    if (shouldUpdateColor) {
+      // Color shift based on scroll progress (subtle) - reuse color object for performance
+      const scrollProgress = animationState.current.scrollProgress;
+      const hue = 200 + scrollProgress * 40; // Shift from blue (200) to cyan (240)
+      colorRef.current.setHSL(hue / 360, 1, 0.65);
+
+      if (meshRef.current.material && meshRef.current.material.color) {
+        meshRef.current.material.color.copy(colorRef.current);
+      }
     }
   });
 
@@ -593,32 +607,32 @@ function Comet({ delay = 3000 }) {
 }
 
 const ParticleBackground = () => {
-  const { isMobile, isTablet } = useBreakpoint();
-  const { performance } = useDevicePerformance();
+  const { performance, isMobile } = useDevicePerformance();
 
+  // Three.js experience for all devices
   // Memoize counts to prevent recalculation on every render
-  // Only recalculate when breakpoint changes, NOT when performance changes
+  // Use performance level for more granular control instead of breakpoints
   const particleCount = useMemo(() => {
-    if (isMobile) return 800;
-    if (isTablet) return 1500;
-    return 3000; // desktop
-  }, [isMobile, isTablet]);
+    if (isMobile || performance === 'low') return 500;
+    if (performance === 'medium') return 1500;
+    return 3000; // high performance desktop
+  }, [isMobile, performance]);
 
-  // Calculate comet count based on device (stable, based on breakpoint only)
   const cometCount = useMemo(() => {
-    if (isMobile) return 1;
-    if (isTablet) return 2;
-    return 4; // desktop
-  }, [isMobile, isTablet]);
+    if (isMobile || performance === 'low') return 1;
+    if (performance === 'medium') return 2;
+    return 4; // high performance desktop
+  }, [isMobile, performance]);
 
-  // Determine if planets should be rendered (stable)
-  const showPlanets = useMemo(() => !isMobile, [isMobile]);
+  const showPlanets = useMemo(() => true, []);
 
-  // Reduce planet count on medium performance (stable)
-  const planetCount = useMemo(() => (isTablet ? 2 : 4), [isTablet]);
+  const planetCount = useMemo(() => {
+    if (isMobile || performance === 'low') return 2;
+    if (performance === 'medium') return 2;
+    return 4;
+  }, [isMobile, performance]);
 
-  // Stable lighting setup based on breakpoint (not performance)
-  const useLighting = useMemo(() => !isMobile, [isMobile]);
+  const useLighting = useMemo(() => true, []);
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none">

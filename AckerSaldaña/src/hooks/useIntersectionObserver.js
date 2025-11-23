@@ -1,33 +1,44 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 
 export const useIntersectionObserver = (options = {}) => {
   const ref = useRef(null);
   const [isIntersecting, setIsIntersecting] = useState(false);
-  const [hasAnimated, setHasAnimated] = useState(false);
+  const hasAnimatedRef = useRef(false);
+
+  // Memoize options to prevent observer recreation on every render
+  // Only recreate if specific option values change
+  const threshold = options.threshold ?? 0.1;
+  const rootMargin = options.rootMargin ?? '0px';
+  const root = options.root;
+
+  // Memoize the observer options object
+  const observerOptions = useMemo(() => ({
+    threshold,
+    rootMargin,
+    root,
+  }), [threshold, rootMargin, root]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !hasAnimated) {
-        setIsIntersecting(true);
-        setHasAnimated(true);
-      }
-    }, {
-      threshold: options.threshold || 0.1,
-      rootMargin: options.rootMargin || '0px',
-      ...options
-    });
-
     const currentRef = ref.current;
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
+    if (!currentRef) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      // Use ref instead of state to avoid dependency and re-creation
+      if (entry.isIntersecting && !hasAnimatedRef.current) {
+        setIsIntersecting(true);
+        hasAnimatedRef.current = true;
+
+        // Once animated, we can disconnect the observer to save resources
+        observer.disconnect();
+      }
+    }, observerOptions);
+
+    observer.observe(currentRef);
 
     return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
+      observer.disconnect();
     };
-  }, [options, hasAnimated]);
+  }, [observerOptions]); // Only recreate when memoized options change
 
   return [ref, isIntersecting];
 };

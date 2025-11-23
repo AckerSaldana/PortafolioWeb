@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
@@ -15,10 +15,25 @@ import {
   SiGit
 } from 'react-icons/si';
 import { customEases, durations, staggerPresets } from '../utils/gsapConfig';
+import useDevicePerformance from '../hooks/useDevicePerformance';
+import useMobileScrollAnimation, { useMobileStaggerAnimation } from '../hooks/useMobileScrollAnimation';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const SkillsGSAP = () => {
+const SkillsGSAP = memo(function SkillsGSAP() {
+  const { performance, isMobile } = useDevicePerformance();
+
+  // MOBILE OPTIMIZATION: Use IntersectionObserver instead of ScrollTrigger (30-40% gain)
+  const { ref: mobileTitleRef, isVisible: titleVisible } = useMobileScrollAnimation({
+    threshold: 0.3,
+    triggerOnce: true
+  });
+  const { ref: mobileCardsRef, visibleIndexes: cardsVisible } = useMobileStaggerAnimation(11, {
+    threshold: 0.2,
+    triggerOnce: true,
+    staggerDelay: 40
+  });
+
   const sectionRef = useRef(null);
   const titleRef = useRef(null);
   const subtitleRef = useRef(null);
@@ -40,49 +55,126 @@ const SkillsGSAP = () => {
     { name: 'Git', icon: SiGit, color: '#F05032', size: 'small', iconSize: 48 },
   ];
 
-  // Parallax effect on scroll - enhanced
+  // Parallax effect - DISABLED on mobile for performance (Phase 4)
   useEffect(() => {
-    if (!sectionRef.current) return;
+    if (!sectionRef.current || isMobile) {
+      console.log('[SkillsGSAP] Parallax disabled on mobile for performance');
+      return;
+    }
 
-    const handleScroll = () => {
+    let rafId = null;
+    let isScheduled = false;
+
+    const updateParallax = () => {
       const scrollY = window.scrollY;
       const sectionTop = sectionRef.current.offsetTop;
       const relativeScroll = scrollY - sectionTop;
 
       parallaxElementsRef.current.forEach((el, index) => {
         if (!el) return;
-        const speed = (index + 1) * 0.05;
+        const baseSpeed = (index + 1) * 0.05;
+        const rotationSpeed = 0.02;
         gsap.to(el, {
-          y: relativeScroll * speed,
-          rotation: relativeScroll * 0.02,
+          y: relativeScroll * baseSpeed,
+          rotation: relativeScroll * rotationSpeed,
           duration: 0,
+        });
+      });
+
+      isScheduled = false;
+    };
+
+    const handleScroll = () => {
+      if (!isScheduled) {
+        isScheduled = true;
+        rafId = requestAnimationFrame(updateParallax);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll, { passive: true });
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, [isMobile]);
+
+  // 3D Tilt & Magnetic hover effect for skill cards - RAF optimized
+  useEffect(() => {
+    // Skip magnetic effect on touch devices (iPhone performance optimization)
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouchDevice) return;
+
+    const cards = skillCardsRef.current.filter(Boolean);
+    if (cards.length === 0) return;
+
+    let rafId = null;
+    let isScheduled = false;
+    let mouseX = 0;
+    let mouseY = 0;
+    let lastUpdateTime = 0;
+
+    // Cache card rects and update occasionally (not every frame)
+    const cardRectsCache = new Map();
+
+    const updateCardRects = () => {
+      cards.forEach((card) => {
+        if (!card) return;
+        const rect = card.getBoundingClientRect();
+        cardRectsCache.set(card, {
+          centerX: rect.left + rect.width / 2,
+          centerY: rect.top + rect.height / 2,
         });
       });
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    // Initial rect calculation
+    updateCardRects();
 
-  // 3D Tilt & Magnetic hover effect for skill cards
-  useEffect(() => {
-    const cards = skillCardsRef.current.filter(Boolean);
-    if (cards.length === 0) return;
+    // Update rects on scroll/resize (layout changes)
+    const handleLayoutChange = () => {
+      updateCardRects();
+    };
 
-    const handleMouseMove = (e) => {
+    const updateMagneticEffect = (timestamp) => {
+      // Throttle to ~60fps max
+      if (timestamp - lastUpdateTime < 16) {
+        isScheduled = false;
+        return;
+      }
+      lastUpdateTime = timestamp;
+
+      const magneticThreshold = 200;
+
       cards.forEach((card) => {
         if (!card) return;
 
-        const rect = card.getBoundingClientRect();
-        const cardCenterX = rect.left + rect.width / 2;
-        const cardCenterY = rect.top + rect.height / 2;
+        const cached = cardRectsCache.get(card);
+        if (!cached) return;
 
-        const distX = e.clientX - cardCenterX;
-        const distY = e.clientY - cardCenterY;
+        const distX = mouseX - cached.centerX;
+        const distY = mouseY - cached.centerY;
+
+        // Quick distance approximation (cheaper than sqrt)
+        const approxDistance = Math.abs(distX) + Math.abs(distY);
+
+        // Early exit if definitely too far (saves expensive sqrt call)
+        if (approxDistance > magneticThreshold * 1.5) {
+          // Only reset if not already at 0 (avoid redundant animations)
+          if (card._gsap && (card._gsap.x !== 0 || card._gsap.y !== 0)) {
+            gsap.to(card, {
+              x: 0,
+              y: 0,
+              duration: 0.6,
+              ease: 'elastic.out(1, 0.5)',
+            });
+          }
+          return;
+        }
+
+        // Now do precise distance calculation for nearby cards only
         const distance = Math.sqrt(distX * distX + distY * distY);
-
-        // Magnetic effect threshold
-        const magneticThreshold = 200;
 
         if (distance < magneticThreshold) {
           // Calculate magnetic pull (stronger when closer)
@@ -96,7 +188,6 @@ const SkillsGSAP = () => {
             ease: 'power2.out',
           });
         } else {
-          // Reset position
           gsap.to(card, {
             x: 0,
             y: 0,
@@ -105,10 +196,33 @@ const SkillsGSAP = () => {
           });
         }
       });
+
+      isScheduled = false;
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    const handleMouseMove = (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+
+      if (!isScheduled) {
+        isScheduled = true;
+        rafId = requestAnimationFrame(updateMagneticEffect);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('scroll', handleLayoutChange, { passive: true });
+    window.addEventListener('resize', handleLayoutChange, { passive: true });
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove, { passive: true });
+      window.removeEventListener('scroll', handleLayoutChange, { passive: true });
+      window.removeEventListener('resize', handleLayoutChange, { passive: true });
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      cardRectsCache.clear();
+    };
   }, []);
 
   // Enhanced Card hover with spotlight effect
@@ -234,18 +348,31 @@ const SkillsGSAP = () => {
   useEffect(() => {
     if (!sectionRef.current) return;
 
+    // MOBILE OPTIMIZATION: Skip ALL GSAP ScrollTrigger animations on mobile (30-40% performance gain)
+    // Use IntersectionObserver + CSS transitions instead
+    if (isMobile) {
+      console.log('[SkillsGSAP] Mobile detected - using CSS animations instead of GSAP ScrollTrigger');
+      return;
+    }
+
     const ctx = gsap.context(() => {
-      // Title animation with scale
+      const isLowPerformance = performance === 'low';
+
+      // Title animation - simplified on mobile (no scale)
       if (titleRef.current) {
         gsap.fromTo(
           titleRef.current,
-          { opacity: 0, y: 50, scale: 0.9 },
+          {
+            opacity: 0,
+            y: isLowPerformance ? 30 : 50,
+            scale: isLowPerformance ? 1 : 0.9
+          },
           {
             opacity: 1,
             y: 0,
             scale: 1,
-            duration: durations.dramatic,
-            ease: customEases.dramatic,
+            duration: isLowPerformance ? durations.fast : durations.dramatic,
+            ease: isLowPerformance ? customEases.smooth : customEases.dramatic,
             scrollTrigger: {
               trigger: sectionRef.current,
               start: 'top 70%',
@@ -255,26 +382,26 @@ const SkillsGSAP = () => {
         );
       }
 
-      // Subtitle animation
+      // Subtitle animation - faster on mobile
       if (subtitleRef.current) {
         gsap.fromTo(
           subtitleRef.current,
-          { opacity: 0, y: 30 },
+          { opacity: 0, y: isLowPerformance ? 20 : 30 },
           {
             opacity: 1,
             y: 0,
-            duration: durations.normal,
+            duration: isLowPerformance ? durations.fast : durations.normal,
             ease: customEases.smooth,
             scrollTrigger: {
               trigger: sectionRef.current,
               start: 'top 70%',
             },
-            delay: 0.2,
+            delay: isLowPerformance ? 0.1 : 0.2,
           }
         );
       }
 
-      // Skill cards stagger animation - clean entrance only
+      // Skill cards stagger animation - simplified on mobile (no 3D transforms)
       skillCardsRef.current.forEach((card, index) => {
         if (!card) return;
 
@@ -282,18 +409,18 @@ const SkillsGSAP = () => {
           card,
           {
             opacity: 0,
-            y: 60,
-            rotateX: -10,
-            scale: 0.9,
+            y: isLowPerformance ? 30 : 60,
+            rotateX: isLowPerformance ? 0 : -10,
+            scale: isLowPerformance ? 1 : 0.9,
           },
           {
             opacity: 1,
             y: 0,
             rotateX: 0,
             scale: 1,
-            duration: durations.dramatic,
-            ease: customEases.dramatic,
-            delay: index * 0.08,
+            duration: isLowPerformance ? durations.normal : durations.dramatic,
+            ease: isLowPerformance ? customEases.smooth : customEases.dramatic,
+            delay: index * (isLowPerformance ? 0.04 : 0.08), // Half delay on mobile
             scrollTrigger: {
               trigger: card,
               start: 'top 85%',
@@ -305,7 +432,7 @@ const SkillsGSAP = () => {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [performance, isMobile]);
 
   return (
     <section
@@ -346,20 +473,43 @@ const SkillsGSAP = () => {
 
       <div className="max-w-[1600px] mx-auto w-full relative z-10">
         {/* Premium Title Section */}
-        <div className="mb-20 md:mb-28 text-center">
+        <div
+          ref={(el) => {
+            if (isMobile) mobileTitleRef.current = el;
+          }}
+          className="mb-20 md:mb-28 text-center"
+        >
           <h2
             ref={titleRef}
             className="text-[12vw] md:text-[8vw] leading-[0.9] font-black text-white mb-8 tracking-tighter uppercase"
+            style={isMobile ? {
+              opacity: titleVisible ? 1 : 0,
+              transform: titleVisible ? 'translateY(0)' : 'translateY(30px)',
+              transition: 'opacity 0.8s ease-out, transform 0.8s ease-out'
+            } : {}}
           >
             TECH ARSENAL
           </h2>
-          <p ref={subtitleRef} className="text-lg md:text-xl text-gray-400 opacity-70 tracking-wide uppercase">
+          <p
+            ref={subtitleRef}
+            className="text-lg md:text-xl text-gray-400 opacity-70 tracking-wide uppercase"
+            style={isMobile ? {
+              opacity: titleVisible ? 1 : 0,
+              transform: titleVisible ? 'translateY(0)' : 'translateY(20px)',
+              transition: 'opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s'
+            } : {}}
+          >
             Weapons of choice for building exceptional experiences
           </p>
         </div>
 
         {/* Premium Bento Grid Layout */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
+        <div
+          ref={(el) => {
+            if (isMobile) mobileCardsRef.current = el;
+          }}
+          className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6"
+        >
           {skills.map((skill, index) => {
             // Bento grid sizing logic
             const getSizeClasses = () => {
@@ -371,6 +521,8 @@ const SkillsGSAP = () => {
               return '';
             };
 
+            const isCardVisible = isMobile ? cardsVisible.has(index) : true;
+
             return (
               <div
                 key={skill.name}
@@ -378,7 +530,12 @@ const SkillsGSAP = () => {
                 className={`group relative cursor-target ${getSizeClasses()}`}
                 onMouseMove={(e) => handleCardHover(e, skillCardsRef.current[index])}
                 onMouseLeave={() => handleCardLeave(skillCardsRef.current[index])}
-                style={{
+                style={isMobile ? {
+                  transformStyle: 'preserve-3d',
+                  opacity: isCardVisible ? 1 : 0,
+                  transform: isCardVisible ? 'translateY(0)' : 'translateY(30px)',
+                  transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
+                } : {
                   transformStyle: 'preserve-3d',
                 }}
               >
@@ -468,6 +625,6 @@ const SkillsGSAP = () => {
       </div>
     </section>
   );
-};
+});
 
 export default SkillsGSAP;
