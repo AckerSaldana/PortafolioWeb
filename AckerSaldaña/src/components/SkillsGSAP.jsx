@@ -16,7 +16,7 @@ import {
 } from 'react-icons/si';
 import { customEases, durations, staggerPresets } from '../utils/gsapConfig';
 import useDevicePerformance from '../hooks/useDevicePerformance';
-import useMobileScrollAnimation, { useMobileStaggerAnimation } from '../hooks/useMobileScrollAnimation';
+import useMobileScrollAnimation, { useMobileStaggerAnimation, useMobileProgressAnimation } from '../hooks/useMobileScrollAnimation';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -481,23 +481,14 @@ const SkillsGSAP = memo(function SkillsGSAP() {
         >
           <h2
             ref={titleRef}
-            className="text-[12vw] md:text-[8vw] leading-[0.9] font-black text-white mb-8 tracking-tighter uppercase"
-            style={isMobile ? {
-              opacity: titleVisible ? 1 : 0,
-              transform: titleVisible ? 'translateY(0)' : 'translateY(30px)',
-              transition: 'opacity 0.8s ease-out, transform 0.8s ease-out'
-            } : {}}
+            className={`text-[12vw] md:text-[8vw] leading-[0.9] font-black text-white mb-8 tracking-tighter uppercase mobile-animate-hidden ${titleVisible ? 'mobile-animate-visible' : ''}`}
           >
             TECH ARSENAL
           </h2>
           <p
             ref={subtitleRef}
-            className="text-lg md:text-xl text-gray-400 opacity-70 tracking-wide uppercase"
-            style={isMobile ? {
-              opacity: titleVisible ? 1 : 0,
-              transform: titleVisible ? 'translateY(0)' : 'translateY(20px)',
-              transition: 'opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s'
-            } : {}}
+            className={`text-lg md:text-xl text-gray-400 opacity-70 tracking-wide uppercase mobile-animate-hidden ${titleVisible ? 'mobile-animate-visible' : ''}`}
+            style={titleVisible ? { transitionDelay: '0.2s' } : {}}
           >
             Weapons of choice for building exceptional experiences
           </p>
@@ -527,21 +518,14 @@ const SkillsGSAP = memo(function SkillsGSAP() {
               <div
                 key={skill.name}
                 ref={(el) => (skillCardsRef.current[index] = el)}
-                className={`group relative cursor-target ${getSizeClasses()}`}
+                className={`group relative cursor-target ${getSizeClasses()} mobile-animate-hidden ${isCardVisible ? 'mobile-animate-visible' : ''}`}
                 onMouseMove={(e) => handleCardHover(e, skillCardsRef.current[index])}
                 onMouseLeave={() => handleCardLeave(skillCardsRef.current[index])}
-                style={isMobile ? {
-                  transformStyle: 'preserve-3d',
-                  opacity: isCardVisible ? 1 : 0,
-                  transform: isCardVisible ? 'translateY(0)' : 'translateY(30px)',
-                  transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
-                } : {
-                  transformStyle: 'preserve-3d',
-                }}
+                style={{ transformStyle: 'preserve-3d' }}
               >
                 {/* Main Card */}
                 <div
-                  className="relative h-full min-h-[180px] md:min-h-[200px] rounded-2xl overflow-hidden"
+                  className="relative h-full min-h-[180px] md:min-h-[200px] rounded-2xl overflow-hidden mobile-card-tap"
                   style={{
                     background: 'linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(15, 15, 15, 0.95) 100%)',
                     backdropFilter: 'blur(20px)',

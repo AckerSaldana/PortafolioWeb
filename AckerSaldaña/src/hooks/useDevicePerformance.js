@@ -1,9 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
 
+// Detect mobile IMMEDIATELY (synchronously) to avoid blur flash on mobile
+const detectMobile = () => {
+  if (typeof window === 'undefined') return false;
+
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isOtherMobile = /webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  // Detect iPad masquerading as desktop (iPadOS 13+)
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const isMacOSWithTouch = /Macintosh/i.test(navigator.userAgent) && isTouchDevice;
+
+  return isIOS || isAndroid || isOtherMobile || isMacOSWithTouch;
+};
+
 const useDevicePerformance = () => {
+  // Initialize isMobile SYNCHRONOUSLY to prevent blur flash
+  const [isMobile] = useState(() => detectMobile());
   const [performance, setPerformance] = useState('high');
   const [fps, setFps] = useState(60);
-  const [isMobile, setIsMobile] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const performanceRef = useRef('high');
   const isMonitoringRef = useRef(true);
 
@@ -12,7 +29,7 @@ const useDevicePerformance = () => {
     const checkPerformance = () => {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      
+
       if (!gl) {
         setPerformance('low');
         return;
@@ -20,32 +37,19 @@ const useDevicePerformance = () => {
 
       // Check device memory (if available)
       const memory = navigator.deviceMemory || 4;
-      
+
       // Check hardware concurrency (CPU cores)
       const cores = navigator.hardwareConcurrency || 4;
-      
+
       // Check connection type
       const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
       const connectionType = connection?.effectiveType || '4g';
-      
-      // Check if mobile (includes iPad and touch devices)
-      // iPad detection: user agent OR (MacOS + touch support)
-      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const isAndroid = /Android/i.test(navigator.userAgent);
-      const isOtherMobile = /webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-      // Detect iPad masquerading as desktop (iPadOS 13+)
-      const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-      const isMacOSWithTouch = /Macintosh/i.test(navigator.userAgent) && isTouchDevice;
-
-      const detectedIsMobile = isIOS || isAndroid || isOtherMobile || isMacOSWithTouch;
-      setIsMobile(detectedIsMobile);
 
       // Determine performance level
       let detectedPerformance = 'high';
       if (memory < 4 || cores < 4 || connectionType === '2g' || connectionType === '3g') {
         detectedPerformance = 'low';
-      } else if (detectedIsMobile || memory < 8) {
+      } else if (isMobile || memory < 8) {
         detectedPerformance = 'medium';
       }
 
@@ -57,6 +61,20 @@ const useDevicePerformance = () => {
     };
 
     checkPerformance();
+
+    // Check for prefers-reduced-motion
+    const checkReducedMotion = () => {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      setPrefersReducedMotion(mediaQuery.matches);
+
+      // Listen for changes
+      const handleChange = (e) => setPrefersReducedMotion(e.matches);
+      mediaQuery.addEventListener('change', handleChange);
+
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    };
+
+    const cleanupReducedMotion = checkReducedMotion();
 
     // Monitor FPS - check if performance API is available
     // Stop monitoring after 10 seconds to save CPU
@@ -144,10 +162,13 @@ const useDevicePerformance = () => {
       if (animationId) {
         cancelAnimationFrame(animationId);
       }
+      if (cleanupReducedMotion) {
+        cleanupReducedMotion();
+      }
     };
   }, []); // Empty dependency array - run once on mount
 
-  return { performance, fps, isMobile };
+  return { performance, fps, isMobile, prefersReducedMotion };
 };
 
 export default useDevicePerformance;

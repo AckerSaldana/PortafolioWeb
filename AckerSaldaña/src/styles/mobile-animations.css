@@ -1,0 +1,321 @@
+/**
+ * Mobile-Optimized CSS Animations
+ * GPU-accelerated animations for 60fps performance on mobile devices
+ * Uses transform and opacity only for optimal performance
+ */
+
+/* ============================================
+   KEYFRAME DEFINITIONS
+   ============================================ */
+
+@keyframes mobileFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mobileScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes mobileSlideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mobileSlideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mobileFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mobileRotateIn {
+  from {
+    opacity: 0;
+    transform: rotate(-5deg) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+/* Touch Ripple Effect */
+@keyframes touchRipple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* Pulse animation for interactive elements */
+@keyframes mobilePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Base animation classes */
+.mobile-fade-in-up {
+  animation: mobileFadeInUp var(--mobile-duration-normal, 0.6s) var(--mobile-ease, ease-out) forwards;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.mobile-scale-in {
+  animation: mobileScaleIn var(--mobile-duration-normal, 0.6s) var(--mobile-ease, ease-out) forwards;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.mobile-slide-in-left {
+  animation: mobileSlideInLeft var(--mobile-duration-normal, 0.6s) var(--mobile-ease, ease-out) forwards;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.mobile-slide-in-right {
+  animation: mobileSlideInRight var(--mobile-duration-normal, 0.6s) var(--mobile-ease, ease-out) forwards;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.mobile-fade-in {
+  animation: mobileFadeIn var(--mobile-duration-fast, 0.4s) var(--mobile-ease, ease-out) forwards;
+}
+
+.mobile-rotate-in {
+  animation: mobileRotateIn var(--mobile-duration-normal, 0.6s) var(--mobile-ease, ease-out) forwards;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ============================================
+   STAGGER DELAYS (CSS-only)
+   ============================================ */
+
+/* Stagger children with increasing delays */
+.mobile-stagger-children > *:nth-child(1) { animation-delay: 0s; }
+.mobile-stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.mobile-stagger-children > *:nth-child(3) { animation-delay: 0.2s; }
+.mobile-stagger-children > *:nth-child(4) { animation-delay: 0.3s; }
+.mobile-stagger-children > *:nth-child(5) { animation-delay: 0.4s; }
+.mobile-stagger-children > *:nth-child(6) { animation-delay: 0.5s; }
+.mobile-stagger-children > *:nth-child(7) { animation-delay: 0.6s; }
+.mobile-stagger-children > *:nth-child(8) { animation-delay: 0.7s; }
+.mobile-stagger-children > *:nth-child(9) { animation-delay: 0.8s; }
+.mobile-stagger-children > *:nth-child(10) { animation-delay: 0.9s; }
+
+/* Fast stagger for smaller delays */
+.mobile-stagger-fast > *:nth-child(1) { animation-delay: 0s; }
+.mobile-stagger-fast > *:nth-child(2) { animation-delay: 0.05s; }
+.mobile-stagger-fast > *:nth-child(3) { animation-delay: 0.1s; }
+.mobile-stagger-fast > *:nth-child(4) { animation-delay: 0.15s; }
+.mobile-stagger-fast > *:nth-child(5) { animation-delay: 0.2s; }
+.mobile-stagger-fast > *:nth-child(6) { animation-delay: 0.25s; }
+.mobile-stagger-fast > *:nth-child(7) { animation-delay: 0.3s; }
+.mobile-stagger-fast > *:nth-child(8) { animation-delay: 0.35s; }
+.mobile-stagger-fast > *:nth-child(9) { animation-delay: 0.4s; }
+.mobile-stagger-fast > *:nth-child(10) { animation-delay: 0.45s; }
+
+/* ============================================
+   BUTTON & TOUCH INTERACTIONS
+   ============================================ */
+
+/* Button press feedback */
+.mobile-btn-press {
+  transition: transform var(--mobile-duration-instant, 0.1s) ease-out;
+}
+
+.mobile-btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Touch ripple container */
+.mobile-touch-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-touch-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: rgba(74, 239, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mobile-touch-ripple:active::after {
+  animation: touchRipple var(--mobile-duration-normal, 0.6s) ease-out;
+}
+
+/* Card tap feedback */
+.mobile-card-tap {
+  transition: transform var(--mobile-duration-instant, 0.1s) ease-out,
+              box-shadow var(--mobile-duration-instant, 0.1s) ease-out;
+}
+
+.mobile-card-tap:active {
+  transform: scale(0.98);
+}
+
+/* Subtle 2D rotation on tap */
+.mobile-card-rotate {
+  transition: transform var(--mobile-duration-fast, 0.4s) ease-out;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.mobile-card-rotate:active {
+  transform: rotateY(2deg) rotateX(-2deg) scale(0.98);
+}
+
+/* ============================================
+   LOADING & SKELETON STATES
+   ============================================ */
+
+@keyframes mobileShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.mobile-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: mobileShimmer 1.5s ease-in-out infinite;
+}
+
+/* ============================================
+   SCROLL REVEAL HELPERS
+   ============================================ */
+
+/* Initial state for elements that will animate in - MOBILE ONLY */
+@media (max-width: 1023px) {
+  .mobile-animate-hidden {
+    opacity: 0 !important;
+    transform: translateY(30px) !important;
+  }
+
+  /* Visible state (add this class when IntersectionObserver triggers) */
+  .mobile-animate-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    transition: opacity var(--mobile-duration-normal, 0.6s) var(--mobile-ease, ease-out),
+                transform var(--mobile-duration-normal, 0.6s) var(--mobile-ease, ease-out);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION SUPPORT
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01s !important;
+  }
+
+  /* Remove all transforms for reduced motion */
+  .mobile-fade-in-up,
+  .mobile-scale-in,
+  .mobile-slide-in-left,
+  .mobile-slide-in-right,
+  .mobile-rotate-in,
+  .mobile-animate-visible {
+    animation: mobileFadeIn 0.01s ease-out forwards;
+    transform: none;
+  }
+
+  /* Disable button press feedback */
+  .mobile-btn-press:active,
+  .mobile-card-tap:active,
+  .mobile-card-rotate:active {
+    transform: none;
+  }
+
+  /* Disable ripple effect */
+  .mobile-touch-ripple::after {
+    display: none;
+  }
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+/* Force GPU acceleration for animated elements */
+.mobile-gpu-accelerate {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+/* Optimize touch scrolling */
+.mobile-smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}

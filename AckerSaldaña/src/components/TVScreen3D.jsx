@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSwipeHorizontal } from '../hooks/useSwipe';
 import './TVScreen3D.css';
 
 const TVScreen3D = () => {
@@ -35,6 +36,22 @@ const TVScreen3D = () => {
   const watchIntervalRef = useRef(null);
   const isVisibleRef = useRef(true);
   const rotationRafRef = useRef(null);
+
+  // Swipe gesture detection for mobile channel navigation
+  const { ref: swipeRef, swipeDirection } = useSwipeHorizontal({
+    minSwipeDistance: 50,
+    minSwipeVelocity: 0.3,
+    onSwipeLeft: () => {
+      if (isPowerOn) {
+        changeChannel(1, null); // Next channel
+      }
+    },
+    onSwipeRight: () => {
+      if (isPowerOn) {
+        changeChannel(-1, null); // Previous channel
+      }
+    }
+  });
 
   // Mouse tracking for 3D rotation
   useEffect(() => {
@@ -420,6 +437,20 @@ const TVScreen3D = () => {
     const handleKeyDown = (e) => {
       if (!isPowerOn) return;
 
+      // Ignore keyboard events if user is typing in a form field
+      const activeElement = document.activeElement;
+      const isTypingInForm = activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        activeElement.tagName === 'SELECT' ||
+        activeElement.isContentEditable
+      );
+
+      // Don't intercept keyboard events when user is in a form field
+      if (isTypingInForm && activeElement !== hiddenInputRef.current) {
+        return;
+      }
+
       // Pong controls
       if (currentChannel === 2) {
         if (e.key === 'ArrowUp') {
@@ -537,7 +568,36 @@ const TVScreen3D = () => {
               <div className="crt-overlay" />
               <div className="crt-glare" />
 
-              <div ref={screenContentRef} className="content-layer">
+              <div
+                ref={(el) => {
+                  screenContentRef.current = el;
+                  swipeRef.current = el;
+                }}
+                className="content-layer"
+                style={{
+                  position: 'relative'
+                }}
+              >
+                {/* Swipe indicator */}
+                {swipeDirection && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: swipeDirection === 'right' ? '10%' : swipeDirection === 'left' ? '90%' : '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#4aefff',
+                      fontSize: '48px',
+                      opacity: 0.6,
+                      pointerEvents: 'none',
+                      zIndex: 100,
+                      transition: 'opacity 0.2s ease-out'
+                    }}
+                  >
+                    {swipeDirection === 'right' ? '◀' : '▶'}
+                  </div>
+                )}
+
                 {/* Channel 0: Terminal (now first) */}
                 <div
                   className={`channel-view ${currentChannel === 0 ? 'active' : ''}`}

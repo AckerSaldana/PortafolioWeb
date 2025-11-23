@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
+@import "./styles/mobile-animations.css";
 
 @theme {
   --color-midnight: #0a0a0a;
@@ -8,9 +9,36 @@
   --color-silver: #e0e0e0;
   --color-pearl: #f5f5f5;
   --color-accent: #4a9eff;
-  
+
   --font-mono: 'JetBrains Mono', monospace;
   --font-sans: 'Inter', sans-serif;
+}
+
+/* Mobile Animation Custom Properties */
+:root {
+  /* Animation durations */
+  --mobile-duration-instant: 0.1s;
+  --mobile-duration-fast: 0.4s;
+  --mobile-duration-normal: 0.6s;
+  --mobile-duration-slow: 0.8s;
+
+  /* Animation easing */
+  --mobile-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --mobile-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --mobile-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --mobile-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Hero Section Mobile Animations */
+/* Initial hidden state - opacity only, NO transforms to prevent blur */
+.hero-mobile-hidden {
+  opacity: 0 !important;
+}
+
+/* Visible state - pure fade in, NO transforms */
+.hero-mobile-visible {
+  opacity: 1 !important;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 body {

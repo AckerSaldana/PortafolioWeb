@@ -29,6 +29,10 @@ const AboutMeGSAP = () => {
     threshold: 0.05,
     triggerOnce: true
   });
+  const { ref: mobileParagraphsRef, isVisible: paragraphsVisible } = useMobileScrollAnimation({
+    threshold: 0.2,
+    triggerOnce: true
+  });
 
   const sectionRef = useRef(null);
   const titleRef = useRef(null);
@@ -357,27 +361,14 @@ const AboutMeGSAP = () => {
         >
           <h2
             ref={titleRef}
-            className="text-[12vw] md:text-[8vw] leading-[0.9] font-black text-white mb-8 tracking-tighter uppercase"
-            style={isMobile ? {
-              opacity: titleVisible ? 1 : 0,
-              transform: titleVisible ? 'translate3d(0, 0, 0)' : 'translate3d(0, 30px, 0)',
-              transition: 'opacity 0.8s ease-out, transform 0.8s ease-out',
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden'
-            } : {}}
+            className={`text-[12vw] md:text-[8vw] leading-[0.9] font-black text-white mb-8 tracking-tighter uppercase mobile-animate-hidden ${titleVisible ? 'mobile-animate-visible' : ''}`}
           >
             About Me
           </h2>
           <p
             ref={subtitleRef}
-            className="text-lg md:text-xl text-gray-400 opacity-70 tracking-wide uppercase ml-0 md:ml-20"
-            style={isMobile ? {
-              opacity: titleVisible ? 1 : 0,
-              transform: titleVisible ? 'translate3d(0, 0, 0)' : 'translate3d(0, 20px, 0)',
-              transition: 'opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s',
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden'
-            } : {}}
+            className={`text-lg md:text-xl text-gray-400 opacity-70 tracking-wide uppercase ml-0 md:ml-20 mobile-animate-hidden ${titleVisible ? 'mobile-animate-visible' : ''}`}
+            style={titleVisible ? { transitionDelay: '0.2s' } : {}}
           >
             Bridging technology & human needs
           </p>
@@ -392,10 +383,11 @@ const AboutMeGSAP = () => {
                 paragraphsRef.current = el;
                 if (isMobile) {
                   mobileContentRef.current = el;
+                  mobileParagraphsRef.current = el;
                   console.log('[AboutMeGSAP] Ref assigned:', el);
                 }
               }}
-              className="space-y-8"
+              className={`space-y-8 mobile-animate-hidden ${paragraphsVisible ? 'mobile-animate-visible' : ''}`}
               style={{
                 textRendering: 'optimizeLegibility',
                 WebkitFontSmoothing: 'antialiased',
@@ -460,12 +452,7 @@ const AboutMeGSAP = () => {
                   <div
                     key={index}
                     ref={(el) => (statsRef.current[index] = el)}
-                    className="relative group"
-                    style={isMobile ? {
-                      opacity: isStatVisible ? 1 : 0,
-                      transform: isStatVisible ? 'translateY(0)' : 'translateY(30px)',
-                      transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
-                    } : {}}
+                    className={`relative group mobile-animate-hidden ${isStatVisible ? 'mobile-animate-visible' : ''}`}
                   >
                   <div className="text-center">
                     <div className="text-5xl md:text-6xl font-bold text-[#4a9eff] mb-3 font-['Inter']">

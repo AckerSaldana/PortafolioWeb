@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
-import { customEases, durations } from '../utils/gsapConfig';
+import { customEases } from '../utils/gsapConfig';
 import { scrollTo } from './SmoothScroll';
 import useDevicePerformance from '../hooks/useDevicePerformance';
 
@@ -25,7 +25,7 @@ const HeroGSAP = () => {
   const magneticRefs = useRef([]);
   const glitchLayersRef = useRef([]);
 
-  const roles = ['Software Engineer', 'Full Stack Developer', 'Problem Solver'];
+  const roles = ['Software Engineer', 'Workaholic', 'Problem Solver'];
 
   // Enhanced mouse move effect for gradient (increased opacity)
   useEffect(() => {
@@ -113,14 +113,48 @@ const HeroGSAP = () => {
       return;
     }
 
-    // MOBILE OPTIMIZATION: Skip GSAP timeline animations on mobile (30-40% performance gain)
-    // Use CSS transitions instead
+    // MOBILE OPTIMIZATION: Use pure CSS transitions (best performance, no blur)
+    // Avoid JavaScript animations on mobile - they can cause text rendering issues
     if (isMobile) {
-      console.log('[HeroGSAP] Mobile detected - using CSS animations instead of GSAP timeline');
-      // Ensure all elements are visible on mobile (no GSAP opacity: 0)
-      gsap.set([nameRef.current, greetingRef.current, roleRef.current, descriptionRef.current, buttonsRef.current, arrowRef.current], {
-        clearProps: 'all'
-      });
+      console.log('[HeroGSAP] Mobile detected - using CSS transitions for best quality');
+
+      // CRITICAL: Clear any GSAP-set styles that might have been applied
+      if (nameRef.current) gsap.set(nameRef.current, { clearProps: 'all' });
+      if (greetingRef.current) gsap.set(greetingRef.current, { clearProps: 'all' });
+      if (roleRef.current) gsap.set(roleRef.current, { clearProps: 'all' });
+      if (descriptionRef.current) gsap.set(descriptionRef.current, { clearProps: 'all' });
+      if (arrowRef.current) gsap.set(arrowRef.current, { clearProps: 'all' });
+      if (buttonsRef.current) {
+        Array.from(buttonsRef.current.children).forEach(btn => {
+          gsap.set(btn, { clearProps: 'all' });
+        });
+      }
+
+      // Use CSS classes for animations - no JavaScript manipulation
+      // This ensures crisp text rendering without any blur
+      setTimeout(() => {
+        if (nameRef.current) nameRef.current.classList.add('hero-mobile-visible');
+        setTimeout(() => {
+          if (greetingRef.current) greetingRef.current.classList.add('hero-mobile-visible');
+        }, 400);
+        setTimeout(() => {
+          if (roleRef.current) roleRef.current.classList.add('hero-mobile-visible');
+        }, 600);
+        setTimeout(() => {
+          if (descriptionRef.current) descriptionRef.current.classList.add('hero-mobile-visible');
+        }, 800);
+        setTimeout(() => {
+          if (buttonsRef.current) {
+            Array.from(buttonsRef.current.children).forEach((btn, i) => {
+              setTimeout(() => btn.classList.add('hero-mobile-visible'), i * 100);
+            });
+          }
+        }, 1000);
+        setTimeout(() => {
+          if (arrowRef.current) arrowRef.current.classList.add('hero-mobile-visible');
+        }, 1400);
+      }, 100);
+
       return;
     }
 
@@ -468,12 +502,13 @@ const HeroGSAP = () => {
         {/* Greeting */}
         <h2
           ref={greetingRef}
-          className="text-sm md:text-base font-['JetBrains_Mono'] text-[#4a9eff] mb-6 md:mb-8 tracking-[0.25em] uppercase font-medium text-center md:text-left"
-          style={isMobile ? {
+          className={`text-sm md:text-base font-['JetBrains_Mono'] text-[#4a9eff] mb-6 md:mb-8 tracking-[0.25em] uppercase font-medium text-center md:text-left ${isMobile ? 'hero-mobile-hidden' : ''}`}
+          style={{
             textRendering: 'optimizeLegibility',
             WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale'
-          } : { willChange: 'transform, opacity' }}
+            MozOsxFontSmoothing: 'grayscale',
+            ...(isMobile ? {} : { willChange: 'transform, opacity' })
+          }}
         >
           {'<'} Hello, I'm {'/>'}
         </h2>
@@ -481,20 +516,14 @@ const HeroGSAP = () => {
         {/* Name - CLEAN BOLD TYPOGRAPHY */}
         <h1
           ref={nameRef}
-          className="text-[clamp(4rem,15vw,12rem)] font-black leading-[0.9] tracking-[-0.04em] mb-12 md:mb-16 text-center md:text-left"
-          style={isMobile ? {
-            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-            color: '#ffffff',
-            textRendering: 'optimizeLegibility',
-            WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale'
-          } : {
+          className={`text-[clamp(4rem,15vw,12rem)] font-black leading-[0.9] tracking-[-0.04em] mb-12 md:mb-16 text-center md:text-left ${isMobile ? 'hero-mobile-hidden' : ''}`}
+          style={{
             fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
             color: '#ffffff',
             textRendering: 'optimizeLegibility',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
-            willChange: 'transform, opacity, filter',
+            ...(isMobile ? {} : { willChange: 'transform, opacity, filter' })
           }}
         >
           <span className="block">Acker</span>
@@ -517,12 +546,13 @@ const HeroGSAP = () => {
 
           <p
             ref={roleRef}
-            className="text-2xl md:text-3xl lg:text-4xl text-[#e0e0e0] font-['Inter'] font-medium md:ml-6 relative"
-            style={isMobile ? {
+            className={`text-2xl md:text-3xl lg:text-4xl text-[#e0e0e0] font-['Inter'] font-medium md:ml-6 relative ${isMobile ? 'hero-mobile-hidden' : ''}`}
+            style={{
               textRendering: 'optimizeLegibility',
               WebkitFontSmoothing: 'antialiased',
-              MozOsxFontSmoothing: 'grayscale'
-            } : { willChange: 'transform, opacity, filter' }}
+              MozOsxFontSmoothing: 'grayscale',
+              ...(isMobile ? {} : { willChange: 'transform, opacity, filter' })
+            }}
           >
             {roles[currentRole]}
           </p>
@@ -531,12 +561,13 @@ const HeroGSAP = () => {
         {/* Description with larger text */}
         <p
           ref={descriptionRef}
-          className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto md:mx-0 mb-16 md:mb-20 leading-relaxed text-center md:text-left"
-          style={isMobile ? {
+          className={`text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto md:mx-0 mb-16 md:mb-20 leading-relaxed text-center md:text-left ${isMobile ? 'hero-mobile-hidden' : ''}`}
+          style={{
             textRendering: 'optimizeLegibility',
             WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale'
-          } : { willChange: 'transform, opacity, filter' }}
+            MozOsxFontSmoothing: 'grayscale',
+            ...(isMobile ? {} : { willChange: 'transform, opacity, filter' })
+          }}
         >
           Crafting <span className="text-[#4a9eff] font-semibold">elegant solutions</span> to complex problems.
           Passionate about clean code, innovative design, and building experiences that make a{' '}
@@ -550,7 +581,7 @@ const HeroGSAP = () => {
         >
           <button
             ref={(el) => (magneticRefs.current[0] = el)}
-            className="cursor-target group relative px-10 py-4 bg-[#4a9eff] text-[#0a0a0a] font-bold text-lg rounded-xl overflow-hidden"
+            className={`cursor-target group relative px-10 py-4 bg-[#4a9eff] text-[#0a0a0a] font-bold text-lg rounded-xl overflow-hidden mobile-btn-press mobile-touch-ripple ${isMobile ? 'hero-mobile-hidden' : ''}`}
             onMouseEnter={(e) => handleButtonHover(e, true)}
             onMouseLeave={(e) => handleButtonHover(e, false)}
             onMouseDown={(e) => {
@@ -570,7 +601,7 @@ const HeroGSAP = () => {
 
           <button
             ref={(el) => (magneticRefs.current[1] = el)}
-            className="cursor-target group relative px-10 py-4 border-2 border-[#4a9eff] text-[#4a9eff] font-bold text-lg rounded-xl overflow-hidden"
+            className={`cursor-target group relative px-10 py-4 border-2 border-[#4a9eff] text-[#4a9eff] font-bold text-lg rounded-xl overflow-hidden mobile-btn-press mobile-touch-ripple ${isMobile ? 'hero-mobile-hidden' : ''}`}
             onMouseEnter={(e) => handleButtonHover(e, true)}
             onMouseLeave={(e) => handleButtonHover(e, false)}
             onMouseDown={(e) => {
@@ -590,7 +621,7 @@ const HeroGSAP = () => {
       {/* Enhanced scroll arrow */}
       <div
         ref={arrowRef}
-        className="absolute bottom-12 left-0 right-0 flex flex-col items-center gap-3 mx-auto"
+        className={`absolute bottom-12 left-0 right-0 flex flex-col items-center gap-3 mx-auto ${isMobile ? 'hero-mobile-hidden' : ''}`}
         style={{ width: 'fit-content' }}
       >
         <span className="text-gray-400 text-xs font-['JetBrains_Mono'] uppercase tracking-[0.2em] opacity-60">

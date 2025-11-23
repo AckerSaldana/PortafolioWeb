@@ -191,23 +191,14 @@ const TVSectionGSAP = () => {
         >
           <h2
             ref={titleRef}
-            className="text-[12vw] md:text-[8vw] leading-[0.9] font-black text-white mb-8 tracking-tighter uppercase"
-            style={isMobile ? {
-              opacity: titleVisible ? 1 : 0,
-              transform: titleVisible ? 'translateY(0)' : 'translateY(30px)',
-              transition: 'opacity 0.8s ease-out, transform 0.8s ease-out'
-            } : {}}
+            className={`text-[12vw] md:text-[8vw] leading-[0.9] font-black text-white mb-8 tracking-tighter uppercase mobile-animate-hidden ${titleVisible ? 'mobile-animate-visible' : ''}`}
           >
             Project Archive
           </h2>
           <p
             ref={subtitleRef}
-            className="text-lg md:text-xl text-gray-400 opacity-70 tracking-wide uppercase"
-            style={isMobile ? {
-              opacity: titleVisible ? 1 : 0,
-              transform: titleVisible ? 'translateY(0)' : 'translateY(20px)',
-              transition: 'opacity 0.6s ease-out 0.1s, transform 0.6s ease-out 0.1s'
-            } : {}}
+            className={`text-lg md:text-xl text-gray-400 opacity-70 tracking-wide uppercase mobile-animate-hidden ${titleVisible ? 'mobile-animate-visible' : ''}`}
+            style={titleVisible ? { transitionDelay: '0.1s' } : {}}
           >
             Navigate through the retro terminal interface to explore my portfolio
           </p>
@@ -228,13 +219,8 @@ const TVSectionGSAP = () => {
               tvRef.current = el;
               if (isMobile) mobileTVRef.current = el;
             }}
-            style={isMobile ? {
-              perspective: '2000px',
-              opacity: tvVisible ? 1 : 0,
-              transform: tvVisible ? 'translateY(0)' : 'translateY(30px)',
-              transition: 'opacity 0.8s ease-out 0.2s, transform 0.8s ease-out 0.2s'
-            } : { perspective: '2000px' }}
-            className="relative z-10"
+            style={tvVisible ? { perspective: '2000px', transitionDelay: '0.2s' } : { perspective: '2000px' }}
+            className={`relative z-10 mobile-animate-hidden ${tvVisible ? 'mobile-animate-visible' : ''}`}
           >
             <TVScreen3D />
           </div>
