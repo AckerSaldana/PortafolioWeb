@@ -77,7 +77,11 @@ const Navbar = () => {
         if (element) {
           // Use Lenis smooth scroll if available
           if (window.lenis) {
-            const top = element.offsetTop;
+            // Account for viewport scale when calculating scroll position
+            const scale = parseFloat(
+              getComputedStyle(document.documentElement).getPropertyValue('--viewport-scale') || 1
+            );
+            const top = element.offsetTop * scale;
             window.lenis.scrollTo(top, { duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
           } else {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -91,7 +95,11 @@ const Navbar = () => {
       if (element) {
         // Use Lenis smooth scroll if available
         if (window.lenis) {
-          const top = element.offsetTop;
+          // Account for viewport scale when calculating scroll position
+          const scale = parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue('--viewport-scale') || 1
+          );
+          const top = element.offsetTop * scale;
           window.lenis.scrollTo(top, { duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
         } else {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -104,7 +112,11 @@ const Navbar = () => {
       if (element) {
         // Use Lenis smooth scroll if available
         if (window.lenis) {
-          const top = element.offsetTop;
+          // Account for viewport scale when calculating scroll position
+          const scale = parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue('--viewport-scale') || 1
+          );
+          const top = element.offsetTop * scale;
           window.lenis.scrollTo(top, { duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
         } else {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });

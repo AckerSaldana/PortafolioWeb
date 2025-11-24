@@ -22,8 +22,15 @@ const Window = ({
   const headerRef = useRef(null);
   const { isMobile, isTablet, windowSize } = useBreakpoint();
 
-  // Store pre-maximized state
+  // State declarations - MUST come before useMemo
+  const [position, setPosition] = useState({ x, y });
+  const [size, setSize] = useState({ width, height });
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeDirection, setResizeDirection] = useState(null);
   const [preMaximizedState, setPreMaximizedState] = useState({ x, y, width, height });
+  const dragStart = useRef({ x: 0, y: 0 });
+  const resizeStart = useRef({ x: 0, y: 0, width: 0, height: 0, startX: 0, startY: 0 });
 
   // Calculate responsive dimensions (memoized for performance)
   const dimensions = useMemo(() => {
@@ -38,23 +45,19 @@ const Window = ({
     if (isMobile) {
       // Near full-screen on mobile
       return {
-        width: Math.min(windowSize.width - 20, width),
-        height: Math.min(windowSize.height - 100, height),
+        width: Math.min(windowSize.width - 20, size.width),
+        height: Math.min(windowSize.height - 100, size.height),
       };
     } else if (isTablet) {
       // Percentage-based on tablet
       return {
-        width: Math.min(windowSize.width * 0.85, width),
-        height: Math.min(windowSize.height * 0.75, height),
+        width: Math.min(windowSize.width * 0.85, size.width),
+        height: Math.min(windowSize.height * 0.75, size.height),
       };
     }
-    // Desktop: use provided dimensions
-    return { width, height };
-  }, [isMobile, isTablet, windowSize.width, windowSize.height, width, height, isMaximized]);
-
-  const [position, setPosition] = useState({ x, y });
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0 });
+    // Desktop: use current size
+    return { width: size.width, height: size.height };
+  }, [isMobile, isTablet, windowSize.width, windowSize.height, size.width, size.height, isMaximized]);
 
   // Adjust position when maximized state changes
   useEffect(() => {
@@ -136,51 +139,115 @@ const Window = ({
     }
   };
 
+  // Resize handlers
+  const handleResizeStart = (e, direction) => {
+    if (isMaximized || isMobile) return;
+
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeDirection(direction);
+
+    const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+    resizeStart.current = {
+      startX: clientX,
+      startY: clientY,
+      x: position.x,
+      y: position.y,
+      width: dimensions.width,
+      height: dimensions.height
+    };
+  };
+
   useEffect(() => {
     const handleMouseMove = (e) => {
-      if (!isDragging) return;
+      if (isDragging) {
+        const newX = e.clientX - dragStart.current.x;
+        const newY = e.clientY - dragStart.current.y;
 
-      const newX = e.clientX - dragStart.current.x;
-      const newY = e.clientY - dragStart.current.y;
+        // Boundary checks
+        const maxX = windowSize.width - dimensions.width;
+        const maxY = windowSize.height - dimensions.height - 48; // Account for taskbar
+        const minY = 0;
 
-      // Boundary checks
-      const maxX = windowSize.width - dimensions.width;
-      const maxY = windowSize.height - dimensions.height - 48; // Account for taskbar
-      const minY = 0; // Allow windows to reach the top of the viewport
+        setPosition({
+          x: Math.max(0, Math.min(newX, maxX)),
+          y: Math.max(minY, Math.min(newY, maxY))
+        });
+      } else if (isResizing) {
+        const deltaX = e.clientX - resizeStart.current.startX;
+        const deltaY = e.clientY - resizeStart.current.startY;
 
-      setPosition({
-        x: Math.max(0, Math.min(newX, maxX)),
-        y: Math.max(minY, Math.min(newY, maxY))
-      });
+        const minWidth = isMobile ? 300 : 300;
+        const minHeight = isMobile ? 200 : 200;
+
+        let newWidth = resizeStart.current.width;
+        let newHeight = resizeStart.current.height;
+        let newX = resizeStart.current.x;
+        let newY = resizeStart.current.y;
+
+        // Handle resize based on direction
+        if (resizeDirection.includes('e')) {
+          newWidth = Math.max(minWidth, resizeStart.current.width + deltaX);
+        }
+        if (resizeDirection.includes('w')) {
+          const widthDelta = resizeStart.current.width - deltaX;
+          if (widthDelta >= minWidth) {
+            newWidth = widthDelta;
+            newX = resizeStart.current.x + deltaX;
+          }
+        }
+        if (resizeDirection.includes('s')) {
+          newHeight = Math.max(minHeight, resizeStart.current.height + deltaY);
+        }
+        if (resizeDirection.includes('n')) {
+          const heightDelta = resizeStart.current.height - deltaY;
+          if (heightDelta >= minHeight) {
+            newHeight = heightDelta;
+            newY = resizeStart.current.y + deltaY;
+          }
+        }
+
+        // Boundary checks
+        newX = Math.max(0, Math.min(newX, windowSize.width - newWidth));
+        newY = Math.max(0, Math.min(newY, windowSize.height - newHeight - 48));
+
+        setSize({ width: newWidth, height: newHeight });
+        setPosition({ x: newX, y: newY });
+      }
     };
 
     const handleTouchMove = (e) => {
-      if (!isDragging) return;
+      if (isDragging) {
+        const touch = e.touches[0];
+        const newX = touch.clientX - dragStart.current.x;
+        const newY = touch.clientY - dragStart.current.y;
 
-      const touch = e.touches[0];
-      const newX = touch.clientX - dragStart.current.x;
-      const newY = touch.clientY - dragStart.current.y;
+        const maxX = windowSize.width - dimensions.width;
+        const maxY = windowSize.height - dimensions.height - 48;
+        const minY = 0;
 
-      // Boundary checks
-      const maxX = windowSize.width - dimensions.width;
-      const maxY = windowSize.height - dimensions.height - 48;
-      const minY = 0; // Allow windows to reach the top of the viewport
-
-      setPosition({
-        x: Math.max(0, Math.min(newX, maxX)),
-        y: Math.max(minY, Math.min(newY, maxY))
-      });
+        setPosition({
+          x: Math.max(0, Math.min(newX, maxX)),
+          y: Math.max(minY, Math.min(newY, maxY))
+        });
+      }
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      setIsResizing(false);
+      setResizeDirection(null);
     };
 
     const handleTouchEnd = () => {
       setIsDragging(false);
+      setIsResizing(false);
+      setResizeDirection(null);
     };
 
-    if (isDragging) {
+    if (isDragging || isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       document.addEventListener('touchmove', handleTouchMove);
@@ -193,7 +260,7 @@ const Window = ({
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isDragging, dimensions.width, dimensions.height, windowSize]);
+  }, [isDragging, isResizing, resizeDirection, dimensions.width, dimensions.height, windowSize, isMobile]);
 
   return (
     <div
@@ -264,6 +331,55 @@ const Window = ({
       >
         {children}
       </div>
+
+      {/* Resize Handles - Only show on desktop when not maximized */}
+      {!isMobile && !isMaximized && (
+        <>
+          {/* Corner handles */}
+          <div
+            className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize"
+            onMouseDown={(e) => handleResizeStart(e, 'nw')}
+            onTouchStart={(e) => handleResizeStart(e, 'nw')}
+          />
+          <div
+            className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize"
+            onMouseDown={(e) => handleResizeStart(e, 'ne')}
+            onTouchStart={(e) => handleResizeStart(e, 'ne')}
+          />
+          <div
+            className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize"
+            onMouseDown={(e) => handleResizeStart(e, 'sw')}
+            onTouchStart={(e) => handleResizeStart(e, 'sw')}
+          />
+          <div
+            className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize"
+            onMouseDown={(e) => handleResizeStart(e, 'se')}
+            onTouchStart={(e) => handleResizeStart(e, 'se')}
+          />
+
+          {/* Edge handles */}
+          <div
+            className="absolute top-0 left-3 right-3 h-1 cursor-n-resize"
+            onMouseDown={(e) => handleResizeStart(e, 'n')}
+            onTouchStart={(e) => handleResizeStart(e, 'n')}
+          />
+          <div
+            className="absolute bottom-0 left-3 right-3 h-1 cursor-s-resize"
+            onMouseDown={(e) => handleResizeStart(e, 's')}
+            onTouchStart={(e) => handleResizeStart(e, 's')}
+          />
+          <div
+            className="absolute left-0 top-3 bottom-3 w-1 cursor-w-resize"
+            onMouseDown={(e) => handleResizeStart(e, 'w')}
+            onTouchStart={(e) => handleResizeStart(e, 'w')}
+          />
+          <div
+            className="absolute right-0 top-3 bottom-3 w-1 cursor-e-resize"
+            onMouseDown={(e) => handleResizeStart(e, 'e')}
+            onTouchStart={(e) => handleResizeStart(e, 'e')}
+          />
+        </>
+      )}
     </div>
   );
 };

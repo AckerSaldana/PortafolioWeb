@@ -159,7 +159,7 @@ const TVSectionGSAP = () => {
     <section
       ref={sectionRef}
       id="projects"
-      className="min-h-screen flex items-center justify-center px-8 py-32 md:py-40 relative z-10 overflow-hidden"
+      className="min-vh-100-scaled flex items-center justify-center px-8 py-32 md:py-40 relative z-10 overflow-hidden"
     >
       {/* Parallax background elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">

@@ -345,16 +345,16 @@ const TargetCursor = ({
     }
   }, [spinDuration]);
 
-  // Don't render cursor on mobile devices
-  if (isMobile) return null;
+  // Don't render cursor on mobile devices or Desktop OS page
+  if (isMobile || isProjectsPage) return null;
 
   return (
     <div ref={cursorRef} className="target-cursor-wrapper">
-      <div ref={dotRef} className={`target-cursor-dot ${isProjectsPage ? 'cursor-green' : ''}`} />
-      <div className={`target-cursor-corner corner-tl ${isProjectsPage ? 'cursor-green' : ''}`} />
-      <div className={`target-cursor-corner corner-tr ${isProjectsPage ? 'cursor-green' : ''}`} />
-      <div className={`target-cursor-corner corner-br ${isProjectsPage ? 'cursor-green' : ''}`} />
-      <div className={`target-cursor-corner corner-bl ${isProjectsPage ? 'cursor-green' : ''}`} />
+      <div ref={dotRef} className="target-cursor-dot" />
+      <div className="target-cursor-corner corner-tl" />
+      <div className="target-cursor-corner corner-tr" />
+      <div className="target-cursor-corner corner-br" />
+      <div className="target-cursor-corner corner-bl" />
     </div>
   );
 };

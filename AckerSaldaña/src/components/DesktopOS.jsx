@@ -8,6 +8,7 @@ import PhotoGallery from './PhotoGallery';
 import AboutMeWindow from './AboutMeWindow';
 import ContactWindow from './ContactWindow';
 import SkillsWindow from './SkillsWindow';
+import OSCursor from './OSCursor';
 import useBreakpoint from '../hooks/useBreakpoint';
 import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
 
@@ -405,6 +406,9 @@ const DesktopOS = () => {
 
   return (
     <div className="fixed inset-0 bg-[#0f0f12] overflow-hidden">
+      {/* Custom OS Cursor */}
+      <OSCursor />
+
       {/* Background gradient */}
       <div
         className="absolute inset-0"
@@ -518,13 +522,32 @@ const DesktopOS = () => {
 
           {/* Start Menu */}
           {showStartMenu && (
-            <div className={`start-menu absolute bottom-full left-0 mb-2 bg-[#1a1a1f]/95 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl overflow-hidden ${
+            <div className={`start-menu absolute bottom-full left-0 mb-2 bg-[#1a1a1f]/95 backdrop-blur-xl border border-white/10 rounded-lg overflow-hidden ${
               isMobile ? 'w-72' : 'w-64'
-            }`}>
+            }`}
+            style={{
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)'
+            }}>
               {/* User Info */}
-              <div className={`border-b border-white/10 bg-white/5 ${isMobile ? 'p-3' : 'p-4'}`}>
-                <div className={`font-semibold text-white mb-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>Acker Saldaña</div>
-                <div className="text-xs text-gray-400">Full Stack Developer</div>
+              <div className={`border-b border-white/10 bg-white/5 ${isMobile ? 'p-4' : 'p-4'}`}>
+                <div className="flex items-center gap-3">
+                  {/* Avatar */}
+                  <div className="w-10 h-10 rounded-full bg-[#0affc2]/10 border border-[#0affc2]/30 flex items-center justify-center">
+                    <span className="text-sm font-bold font-['JetBrains_Mono'] text-[#0affc2]">
+                      AS
+                    </span>
+                  </div>
+
+                  {/* User details */}
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-white">
+                      Acker Saldaña
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Full Stack Developer
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Menu Items */}
@@ -538,12 +561,19 @@ const DesktopOS = () => {
                         openWindow(appId);
                         setShowStartMenu(false);
                       }}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/10 transition-all text-left"
+                      className="group w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-white/10 transition-colors text-left"
                     >
-                      <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-[#2a303c] to-[#161b22] rounded-lg border border-white/8">
-                        <span className="text-sm font-['JetBrains_Mono'] font-bold text-[#0affc2]">{app.icon}</span>
+                      {/* Icon */}
+                      <div className="w-8 h-8 flex items-center justify-center bg-[#2a303c] rounded border border-white/10">
+                        <span className="text-sm font-['JetBrains_Mono'] font-bold text-[#0affc2]">
+                          {app.icon}
+                        </span>
                       </div>
-                      <span className="text-sm text-gray-300">{app.title}</span>
+
+                      {/* Title */}
+                      <span className="text-sm text-gray-400 group-hover:text-white transition-colors">
+                        {app.title}
+                      </span>
                     </button>
                   );
                 })}
@@ -556,13 +586,16 @@ const DesktopOS = () => {
               <div className="p-2">
                 <button
                   onClick={handleShutdown}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-red-500/20 hover:text-red-400 transition-all text-left text-gray-300"
+                  className="group w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-red-500/20 transition-colors text-left text-gray-400 hover:text-red-400"
                 >
+                  {/* Icon */}
                   <div className="w-8 h-8 flex items-center justify-center">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
                   </div>
+
+                  {/* Title */}
                   <span className="text-sm">Shutdown</span>
                 </button>
               </div>

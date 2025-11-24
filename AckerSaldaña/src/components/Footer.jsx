@@ -89,32 +89,16 @@ const Footer = () => {
   ];
 
   return (
-    <footer ref={footerRef} className="relative w-full bg-black pt-48 pb-8 px-8 overflow-hidden">
+    <footer ref={footerRef} className="relative w-full bg-black pt-16 md:pt-24 pb-12 md:pb-16 px-8 overflow-hidden">
       {/* Subtle gradient orbs */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div className="absolute top-1/4 left-1/3 w-[600px] h-[600px] bg-[#4a9eff]/20 rounded-full blur-[150px]" />
         <div className="absolute bottom-1/3 right-1/3 w-[500px] h-[500px] bg-[#7b61ff]/20 rounded-full blur-[150px]" />
       </div>
 
-      <div className="relative max-w-[1800px] mx-auto">
-        {/* Hero CTA Section */}
-        <div className="mb-32 md:mb-48 text-center">
-          <div ref={heroTextRef} className="mb-16 md:mb-24">
-            <h2 className="text-[clamp(3rem,12vw,10rem)] leading-[0.9] font-black tracking-tighter text-white">
-              <span className="block">LET'S CREATE</span>
-              <span className="block">SOMETHING</span>
-              <span className="block bg-gradient-to-r from-white via-[#4a9eff] to-[#7b61ff] bg-clip-text text-transparent">
-                LEGENDARY
-              </span>
-            </h2>
-          </div>
-
-          {/* Horizontal divider */}
-          <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        </div>
-
+      <div className="relative max-w-[1920px] mx-auto">
         {/* Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-16 md:gap-8 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 mb-12 md:mb-16">
           {/* Navigation - Compact */}
           <div className="md:col-span-3">
             <h3 className="text-xs font-['JetBrains_Mono'] uppercase tracking-[0.3em] text-gray-500 mb-8">
@@ -149,7 +133,7 @@ const Footer = () => {
           </div>
 
           {/* Social Links */}
-          <div className="md:col-span-3">
+          <div className="md:col-span-3 mt-8 md:mt-0">
             <h3 className="text-xs font-['JetBrains_Mono'] uppercase tracking-[0.3em] text-gray-500 mb-8">
               Connect
             </h3>
@@ -177,7 +161,7 @@ const Footer = () => {
           </div>
 
           {/* Info */}
-          <div className="md:col-span-3">
+          <div className="md:col-span-3 mt-8 md:mt-0">
             <h3 className="text-xs font-['JetBrains_Mono'] uppercase tracking-[0.3em] text-gray-500 mb-8">
               Info
             </h3>
@@ -194,7 +178,7 @@ const Footer = () => {
           </div>
 
           {/* Back to Top - Right aligned */}
-          <div className="md:col-span-3 flex justify-start md:justify-end">
+          <div className="md:col-span-3 mt-8 md:mt-0 flex justify-start md:justify-end">
             <button
               ref={backToTopRef}
               onClick={scrollToTop}

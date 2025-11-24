@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { customEases } from '../utils/gsapConfig';
 import { scrollTo } from './SmoothScroll';
 import useDevicePerformance from '../hooks/useDevicePerformance';
 
 const HeroGSAP = () => {
-  const navigate = useNavigate();
   const { performance, isMobile } = useDevicePerformance();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [showArrow, setShowArrow] = useState(true);
@@ -493,7 +491,7 @@ const HeroGSAP = () => {
   };
 
   return (
-    <div ref={containerRef} className="relative min-h-screen flex flex-col justify-center px-8 overflow-hidden z-10">
+    <div ref={containerRef} className="relative vh-100-scaled flex flex-col justify-center px-8 overflow-hidden z-10">
       {/* Gradient background removed per user request */}
 
       {/* Decorative elements removed per user request */}
@@ -582,13 +580,22 @@ const HeroGSAP = () => {
           <button
             ref={(el) => (magneticRefs.current[0] = el)}
             className={`cursor-target group relative px-10 py-4 bg-[#4a9eff] text-[#0a0a0a] font-bold text-lg rounded-xl overflow-hidden mobile-btn-press mobile-touch-ripple ${isMobile ? 'hero-mobile-hidden' : ''}`}
-            onMouseEnter={(e) => handleButtonHover(e, true)}
-            onMouseLeave={(e) => handleButtonHover(e, false)}
+            onMouseEnter={(e) => !isMobile && handleButtonHover(e, true)}
+            onMouseLeave={(e) => !isMobile && handleButtonHover(e, false)}
             onMouseDown={(e) => {
-              e.stopPropagation();
-              handleButtonClick(e);
+              if (!isMobile) {
+                e.stopPropagation();
+                handleButtonClick(e);
+              }
             }}
-            onClick={() => navigate('/projects')}
+            onTouchStart={(e) => {
+              if (isMobile) {
+                handleButtonClick(e);
+              }
+            }}
+            onClick={() => {
+              scrollTo('#projects', { offset: -80 });
+            }}
           >
             <div className="button-glow absolute inset-0 bg-gradient-to-r from-[#4a9eff] to-[#7b61ff] opacity-0" />
             <span className="relative z-10 flex items-center gap-2">
@@ -602,11 +609,18 @@ const HeroGSAP = () => {
           <button
             ref={(el) => (magneticRefs.current[1] = el)}
             className={`cursor-target group relative px-10 py-4 border-2 border-[#4a9eff] text-[#4a9eff] font-bold text-lg rounded-xl overflow-hidden mobile-btn-press mobile-touch-ripple ${isMobile ? 'hero-mobile-hidden' : ''}`}
-            onMouseEnter={(e) => handleButtonHover(e, true)}
-            onMouseLeave={(e) => handleButtonHover(e, false)}
+            onMouseEnter={(e) => !isMobile && handleButtonHover(e, true)}
+            onMouseLeave={(e) => !isMobile && handleButtonHover(e, false)}
             onMouseDown={(e) => {
-              e.stopPropagation();
-              handleButtonClick(e);
+              if (!isMobile) {
+                e.stopPropagation();
+                handleButtonClick(e);
+              }
+            }}
+            onTouchStart={(e) => {
+              if (isMobile) {
+                handleButtonClick(e);
+              }
             }}
             onClick={() => {
               scrollTo('#contact', { offset: -80 });

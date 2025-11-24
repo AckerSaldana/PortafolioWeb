@@ -217,14 +217,14 @@ const ExperienceGSAP = () => {
     <section
       ref={sectionRef}
       id="experience"
-      className="relative w-full py-32 md:py-64 px-4 md:px-8"
+      className="relative w-full pt-24 md:pt-32 pb-12 md:pb-16 px-4 md:px-8"
     >
       {/* Title Section */}
       <div
         ref={(el) => {
           if (isMobile) mobileTitleRef.current = el;
         }}
-        className="mb-32 md:mb-48 text-center max-w-7xl mx-auto"
+        className="mb-24 md:mb-32 text-center max-w-7xl mx-auto"
       >
         <h2
           ref={titleRef}
@@ -275,8 +275,8 @@ const ExperienceGSAP = () => {
             <div
               key={exp.id}
               ref={(el) => (itemsRef.current[index] = el)}
-              className={`relative min-h-[60vh] flex flex-col md:flex-row items-center justify-center w-full mb-32 md:mb-0 ${
-                index < experiences.length - 1 ? 'md:mb-48' : ''
+              className={`relative min-h-[60vh] flex flex-col md:flex-row items-center justify-center w-full mb-12 md:mb-0 ${
+                index < experiences.length - 1 ? 'md:mb-24' : ''
               }`}
             >
               {/* Content */}

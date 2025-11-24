@@ -14,43 +14,127 @@
   --font-sans: 'Inter', sans-serif;
 }
 
-/* Mobile Animation Custom Properties */
+/* CSS Custom Properties */
 :root {
-  /* Animation durations */
+  /* Viewport scaling for responsive scaler */
+  --viewport-scale: 1; /* Default scale, updated by ResponsiveScaler */
+
+  /* Mobile animation durations */
   --mobile-duration-instant: 0.1s;
   --mobile-duration-fast: 0.4s;
   --mobile-duration-normal: 0.6s;
   --mobile-duration-slow: 0.8s;
 
-  /* Animation easing */
+  /* Mobile animation easing */
   --mobile-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --mobile-ease-in: cubic-bezier(0.4, 0, 1, 1);
   --mobile-ease-out: cubic-bezier(0, 0, 0.2, 1);
   --mobile-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
+/* Reset for proper scaling */
+html, body {
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto; /* Allow vertical scrolling */
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Viewport-scaled height utilities */
+/* Use these classes on sections that should fill the viewport */
+.vh-100-scaled {
+  height: calc(100vh / var(--viewport-scale));
+  min-height: calc(100vh / var(--viewport-scale));
+}
+
+.min-vh-100-scaled {
+  min-height: calc(100vh / var(--viewport-scale));
+}
+
+/* Responsive Scaler Wrapper */
+.scaler-wrapper {
+  transform-origin: top left;
+  position: relative;
+  width: 1920px; /* Design base width, will be overridden by JS on mobile */
+
+  /* Don't constrain height - let JS control it dynamically */
+  /* Height is set by ResponsiveScaler based on scaled content */
+  height: auto;
+  min-height: 0;
+  max-height: none;
+
+  /* Allow smooth GSAP transforms */
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Footer outside scaler - ensure full viewport width */
+footer {
+  width: 100vw;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* Compact footer on smaller screens */
+@media (max-width: 1919px) {
+  footer {
+    padding-top: 3rem !important;
+    padding-bottom: 2rem !important;
+  }
+}
+
+/* Even more compact on mobile */
+@media (max-width: 767px) {
+  footer {
+    padding-top: 2rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+}
+
+/* Mobile override - full width on small screens */
+@media (max-width: 767px) {
+  .scaler-wrapper {
+    width: 100% !important;
+    transform: none !important;
+  }
+}
+
 /* Hero Section Mobile Animations */
 /* Initial hidden state - opacity only, NO transforms to prevent blur */
 .hero-mobile-hidden {
   opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* Visible state - pure fade in, NO transforms */
 .hero-mobile-visible {
   opacity: 1 !important;
+  pointer-events: auto !important;
   transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 body {
   background-color: var(--color-midnight);
   color: var(--color-silver);
-  margin: 0;
   font-family: var(--font-sans);
   cursor: none;
+  position: relative;
 }
 
 * {
   cursor: none !important;
+  box-sizing: border-box;
 }
 
 /* Custom cursor styles */
@@ -402,5 +486,42 @@ body {
   50% {
     opacity: 1;
     transform: scaleY(1.3);
+  }
+}
+
+/* Fade in up animation for start menu items */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Resize cursor utilities */
+.cursor-nw-resize { cursor: nw-resize !important; }
+.cursor-ne-resize { cursor: ne-resize !important; }
+.cursor-sw-resize { cursor: sw-resize !important; }
+.cursor-se-resize { cursor: se-resize !important; }
+.cursor-n-resize { cursor: n-resize !important; }
+.cursor-s-resize { cursor: s-resize !important; }
+.cursor-e-resize { cursor: e-resize !important; }
+.cursor-w-resize { cursor: w-resize !important; }
+
+/* OS Cursor */
+.os-cursor {
+  will-change: transform;
+  animation: cursor-pulse 2s ease-in-out infinite;
+}
+
+@keyframes cursor-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px rgba(10, 255, 194, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(10, 255, 194, 0.8));
   }
 }

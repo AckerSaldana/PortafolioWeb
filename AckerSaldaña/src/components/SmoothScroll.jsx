@@ -81,8 +81,6 @@ export default function SmoothScroll({ children }) {
  * @param {Object} options - Scroll options
  */
 export const scrollTo = (target, options = {}) => {
-  if (!window.lenis) return;
-
   const {
     offset = 0,
     duration = 1,
@@ -92,14 +90,41 @@ export const scrollTo = (target, options = {}) => {
     onComplete = null,
   } = options;
 
-  window.lenis.scrollTo(target, {
-    offset,
-    duration,
-    immediate,
-    lock,
-    force,
-    onComplete,
-  });
+  // If Lenis is available (desktop), use it
+  if (window.lenis) {
+    window.lenis.scrollTo(target, {
+      offset,
+      duration,
+      immediate,
+      lock,
+      force,
+      onComplete,
+    });
+    return;
+  }
+
+  // Fallback for mobile/when Lenis is not available: use native scrolling
+  const element = typeof target === 'string' ? document.getElementById(target.replace('#', '')) : target;
+  if (element) {
+    // Account for viewport scale when calculating scroll position
+    // This is important for touch devices at resolutions where content is scaled
+    const scale = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--viewport-scale') || 1
+    );
+
+    // Use offsetTop for accurate position regardless of current scroll
+    const scrollTop = (element.offsetTop * scale) + offset;
+
+    window.scrollTo({
+      top: scrollTop,
+      behavior: immediate ? 'auto' : 'smooth'
+    });
+
+    if (onComplete) {
+      // Estimate scroll completion time for callback
+      setTimeout(onComplete, duration * 1000);
+    }
+  }
 };
 
 /**

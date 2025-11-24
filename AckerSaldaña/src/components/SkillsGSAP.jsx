@@ -14,6 +14,7 @@ import {
   SiPostgresql,
   SiGit
 } from 'react-icons/si';
+import { VscAzureDevops } from 'react-icons/vsc';
 import { customEases, durations, staggerPresets } from '../utils/gsapConfig';
 import useDevicePerformance from '../hooks/useDevicePerformance';
 import useMobileScrollAnimation, { useMobileStaggerAnimation, useMobileProgressAnimation } from '../hooks/useMobileScrollAnimation';
@@ -28,7 +29,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
     threshold: 0.3,
     triggerOnce: true
   });
-  const { ref: mobileCardsRef, visibleIndexes: cardsVisible } = useMobileStaggerAnimation(11, {
+  const { ref: mobileCardsRef, visibleIndexes: cardsVisible } = useMobileStaggerAnimation(12, {
     threshold: 0.2,
     triggerOnce: true,
     staggerDelay: 40
@@ -53,6 +54,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
     { name: 'MySQL', icon: SiMysql, color: '#4479A1', size: 'small', iconSize: 48 },
     { name: 'Swift', icon: SiSwift, color: '#FA7343', size: 'small', iconSize: 48 },
     { name: 'Git', icon: SiGit, color: '#F05032', size: 'small', iconSize: 48 },
+    { name: 'Azure DevOps', icon: VscAzureDevops, color: '#0078D4', size: 'small', iconSize: 48 },
   ];
 
   // Parallax effect - DISABLED on mobile for performance (Phase 4)
@@ -437,7 +439,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
   return (
     <section
       ref={sectionRef}
-      className="min-h-screen flex items-center justify-center px-6 md:px-8 py-32 md:py-40 relative z-10 overflow-hidden"
+      className="min-vh-100-scaled flex items-center justify-center px-6 md:px-8 py-32 md:py-40 relative z-10 overflow-hidden"
       style={{ perspective: '2000px' }}
     >
       {/* Enhanced Parallax Background Elements */}

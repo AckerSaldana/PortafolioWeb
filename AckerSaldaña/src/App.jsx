@@ -17,6 +17,8 @@ import { useIntersectionObserver } from './hooks/useIntersectionObserver'
 import SmoothScroll from './components/SmoothScroll'
 import Preloader from './components/Preloader'
 import ScrollProgress from './components/ScrollProgress'
+import { useResponsiveScaler } from './hooks/useResponsiveScaler'
+import CursorDebug from './components/CursorDebug'
 
 function AnimatedSection({ id, title }) {
   const [ref, isVisible] = useIntersectionObserver({ threshold: 0.3 });
@@ -45,33 +47,56 @@ function AnimatedSection({ id, title }) {
 }
 
 function HomePage() {
+  // Initialize responsive scaler
+  // Disabled on mobile (< 768px) to maintain responsive design
+  // Design width 2400px ensures 1920x1080 displays at 80% scale (matching lower resolutions)
+  const { wrapperRef } = useResponsiveScaler({
+    designWidth: 2400, // Increased to make content significantly smaller at 1920x1080
+    designHeight: 1080,
+    minScale: 0.3,
+    maxScale: 1.0, // Don't scale up on large screens, only down on small screens
+    mobileBreakpoint: 768,
+    centerContent: true,
+    debounceDelay: 150
+  });
+
+  // Debug mode - enable with ?debug=cursor in URL
+  const isDebugMode = new URLSearchParams(window.location.search).get('debug') === 'cursor';
+
   return (
-    <div className="min-h-screen relative" style={{ background: '#0a0a0a' }}>
+    <div className="relative w-full" style={{ background: '#0a0a0a' }}>
       <TargetCursor />
       <ScrollProgress />
       <ParticleBackground />
+      {isDebugMode && <CursorDebug />}
+
+      {/* Navbar outside scaled wrapper for full-width display */}
       <Navbar />
 
-      <div id="home">
-        <HeroGSAP />
+      {/* Scalable content wrapper */}
+      <div ref={wrapperRef} className="scaler-wrapper">
+        <div id="home">
+          <HeroGSAP />
+        </div>
+
+        <AboutMeGSAP />
+
+        <div id="skills">
+          <SkillsGSAP />
+        </div>
+
+        <div id="projects">
+          <TVSectionGSAP />
+        </div>
+
+        <div id="experience">
+          <ExperienceGSAP />
+        </div>
+
+        <ContactGSAP />
       </div>
 
-      <AboutMeGSAP />
-
-      <div id="skills">
-        <SkillsGSAP />
-      </div>
-
-      <div id="projects">
-        <TVSectionGSAP />
-      </div>
-
-      <div id="experience">
-        <ExperienceGSAP />
-      </div>
-
-      <ContactGSAP />
-
+      {/* Footer outside scaled wrapper for full-width display */}
       <Footer />
     </div>
   )

@@ -363,7 +363,7 @@ const ContactGSAP = () => {
     <section
       ref={sectionRef}
       id="contact"
-      className="relative w-full py-32 md:py-64 px-4 md:px-8"
+      className="relative w-full pt-24 md:pt-32 pb-40 md:pb-56 px-4 md:px-8"
     >
       {/* Particles for send animation - only render when sending */}
       {isSubmitting && (
@@ -498,7 +498,7 @@ const ContactGSAP = () => {
           ref={(el) => {
             if (isMobile) mobileTitleRef.current = el;
           }}
-          className="mb-32 md:mb-48 text-center"
+          className="mb-12 md:mb-16 text-center"
         >
           <h2
             ref={titleRef}

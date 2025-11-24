@@ -9,8 +9,10 @@ const SkillsWindow = () => {
     { name: 'GSAP', level: 90, category: 'frontend', color: '#88ce02' },
     { name: 'Tailwind CSS', level: 92, category: 'frontend', color: '#06b6d4' },
     { name: 'JavaScript', level: 95, category: 'frontend', color: '#f7df1e' },
+    { name: 'Vulkan', level: 78, category: 'frontend', color: '#ac162c' },
     { name: 'Node.js', level: 88, category: 'backend', color: '#68a063' },
     { name: 'Python', level: 82, category: 'backend', color: '#3776ab' },
+    { name: 'C++', level: 85, category: 'backend', color: '#00599c' },
     { name: 'Supabase', level: 80, category: 'backend', color: '#3ecf8e' },
     { name: 'Firebase', level: 85, category: 'backend', color: '#ffca28' },
     { name: 'PostgreSQL', level: 78, category: 'backend', color: '#336791' },
@@ -18,6 +20,7 @@ const SkillsWindow = () => {
     { name: 'Docker', level: 75, category: 'tools', color: '#2496ed' },
     { name: 'Vite', level: 88, category: 'tools', color: '#646cff' },
     { name: 'Figma', level: 85, category: 'tools', color: '#f24e1e' },
+    { name: 'Azure DevOps', level: 80, category: 'tools', color: '#0078d4' },
   ];
 
   const categories = [

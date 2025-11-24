@@ -9,44 +9,44 @@ const PhotoGallery = () => {
     {
       id: 1,
       url: '/photos/photo1.jpeg',
-      caption: 'Captured Moment 1',
-      location: 'Photography by Acker Saldaña',
+      caption: 'Cirque du Soleil Performance',
+      location: 'Mexico City, Mexico - Photography by Acker Saldaña',
       date: '2024'
     },
     {
       id: 2,
       url: '/photos/photo2.jpeg',
-      caption: 'Captured Moment 2',
-      location: 'Photography by Acker Saldaña',
-      date: '2024'
+      caption: 'Somewhere in Manchester',
+      location: 'Manchester, UK - Photography by Acker Saldaña',
+      date: '2025'
     },
     {
       id: 3,
       url: '/photos/photo3.jpeg',
-      caption: 'Captured Moment 3',
-      location: 'Photography by Acker Saldaña',
+      caption: 'Morat Concert Live',
+      location: 'Monterrey, Mexico - Photography by Acker Saldaña',
       date: '2024'
     },
     {
       id: 4,
       url: '/photos/photo4.jpeg',
-      caption: 'Captured Moment 4',
-      location: 'Photography by Acker Saldaña',
-      date: '2024'
+      caption: 'Greenfield Sunset',
+      location: 'Greenfield, United Kingdom - Photography by Acker Saldaña',
+      date: '2025'
     },
     {
       id: 5,
       url: '/photos/photo5.jpeg',
-      caption: 'Captured Moment 5',
-      location: 'Photography by Acker Saldaña',
-      date: '2024'
+      caption: 'Nature frames',
+      location: 'Dublin, Ireland - Photography by Acker Saldaña',
+      date: '2025'
     },
     {
       id: 6,
       url: '/photos/photo6.jpeg',
-      caption: 'Captured Moment 6',
-      location: 'Photography by Acker Saldaña',
-      date: '2024'
+      caption: 'Autumn Vibes',
+      location: 'Dublin, Ireland - Photography by Acker Saldaña',
+      date: '2025'
     },
   ];
 

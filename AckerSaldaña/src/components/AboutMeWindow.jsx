@@ -1,15 +1,15 @@
 const AboutMeWindow = () => {
   const skills = [
-    { category: 'Frontend', items: ['React', 'Three.js', 'GSAP', 'Tailwind CSS'] },
-    { category: 'Backend', items: ['Node.js', 'Python', 'Supabase', 'Firebase'] },
-    { category: 'Tools', items: ['Git', 'Docker', 'Vite', 'Figma'] },
+    { category: 'Frontend', items: ['React', 'Three.js', 'GSAP', 'Tailwind CSS','JavaScript'] },
+    { category: 'Backend', items: ['Node.js', 'Python', 'Supabase', 'Firebase', 'C++'] },
+    { category: 'Tools', items: ['Git', 'Docker', 'Vite', 'Figma', 'Azure Devops'] },
   ];
 
   const socialLinks = [
     { name: 'GitHub', url: 'https://github.com/AckerSaldana', icon: 'gh:' },
-    { name: 'LinkedIn', url: '#', icon: 'in:' },
-    { name: 'Twitter', url: '#', icon: 'x:' },
-    { name: 'Email', url: 'mailto:acker@example.com', icon: '@:' },
+    { name: 'LinkedIn', url: 'https://www.linkedin.com/in/acker-salda%C3%B1a-452351318/', icon: 'in:' },
+    { name: 'Instagram', url: 'https://www.instagram.com/ackersal23/', icon: 'ig:' },
+    { name: 'Email', url: 'mailto:codeasdf@outlook.com', icon: '@:' },
   ];
 
   return (
@@ -20,7 +20,7 @@ const AboutMeWindow = () => {
       {/* Header */}
       <div className="mb-6 pb-6 border-b border-white/10">
         <h1 className="text-2xl font-bold text-white mb-2">Acker Saldaña</h1>
-        <p className="text-[#0affc2] font-semibold mb-3">Full Stack Developer</p>
+        <p className="text-[#0affc2] font-semibold mb-3">Software Engineer</p>
         <p className="text-gray-400 text-sm leading-relaxed">
           Passionate software engineer crafting elegant solutions to complex problems.
           Specialized in building interactive web experiences with modern technologies.
@@ -103,7 +103,7 @@ const AboutMeWindow = () => {
             or designing unique user experiences that push the boundaries of what's possible on the web.
           </p>
           <p className="text-[#0affc2] font-semibold">
-            "Crafting digital experiences, one pixel at a time."
+            "Solving complex problems with elegant code."
           </p>
         </div>
       </div>
