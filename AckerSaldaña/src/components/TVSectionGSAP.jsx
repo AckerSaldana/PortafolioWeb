@@ -191,17 +191,32 @@ const TVSectionGSAP = () => {
         >
           <h2
             ref={titleRef}
-            className={`text-[12vw] md:text-[8vw] leading-[0.9] font-black text-white mb-8 tracking-tighter uppercase mobile-animate-hidden ${titleVisible ? 'mobile-animate-visible' : ''}`}
+            className={`text-[12vw] md:text-[8vw] leading-[0.9] font-black text-white mb-6 tracking-tighter uppercase mobile-animate-hidden ${titleVisible ? 'mobile-animate-visible' : ''}`}
           >
             Project Archive
           </h2>
-          <p
+          <div
             ref={subtitleRef}
-            className={`text-lg md:text-xl text-gray-400 opacity-70 tracking-wide uppercase mobile-animate-hidden ${titleVisible ? 'mobile-animate-visible' : ''}`}
+            className={`max-w-2xl mx-auto mobile-animate-hidden ${titleVisible ? 'mobile-animate-visible' : ''}`}
             style={titleVisible ? { transitionDelay: '0.1s' } : {}}
           >
-            Navigate through the retro terminal interface to explore my portfolio
-          </p>
+            <p className="text-lg md:text-xl text-gray-400 mb-4">
+              Navigate through the retro terminal interface to explore my portfolio
+            </p>
+            <p className="text-sm md:text-base text-gray-500 flex items-center justify-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1">
+                <span className="text-[#4a9eff]">●</span> Click power button to turn on
+              </span>
+              <span className="hidden md:inline text-gray-600">•</span>
+              <span className="inline-flex items-center gap-1">
+                <span className="text-[#4a9eff]">◄ ►</span> Switch channels
+              </span>
+              <span className="hidden md:inline text-gray-600">•</span>
+              <span className="inline-flex items-center gap-1">
+                <span className="text-[#4a9eff]">⌨</span> Type in terminal
+              </span>
+            </p>
+          </div>
         </div>
 
         {/* TV Component - Centered */}

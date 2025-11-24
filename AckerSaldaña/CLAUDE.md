@@ -13,6 +13,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Deployment:**
 - `firebase deploy` - Deploy to Firebase hosting (requires Firebase CLI)
 
+## User Interaction Features
+
+This portfolio includes several interactive elements that users can engage with:
+
+### TV Monitor Component
+- **Location**: Projects section (TVSectionGSAP.jsx, TVScreen3D.jsx)
+- **Power Button**: Clickable button below the screen toggles power on/off
+- **Channel System**:
+  - Channel 0: Interactive terminal with command input
+  - Channel 1: Projects gallery/showcase
+  - Channel 2: Retro music player
+- **Channel Controls**: Previous/Next buttons (◄ / ►) to switch channels
+- **LED Indicator**: Visual feedback showing power state
+- **Terminal**: Functional command-line interface when on Channel 0
+  - Users can type commands: `help`, `about`, `projects`, `clear`, etc.
+  - Click terminal area to focus for input
+
+### 3D Particle Background
+- **Location**: ParticleBackground.jsx (rendered globally)
+- **Mouse Movement**: Particles shift colors based on cursor position
+- **Scroll Interaction**: Color and speed changes based on scroll position
+- **Mouse Hold**: Click and hold anywhere to accelerate planet rotations
+- **Planets**: Multiple 3D GLB models orbit in the scene
+
+### Magnetic Buttons
+- **Location**: Hero section (HeroGSAP.jsx)
+- **Hover Effect**: Buttons pull toward cursor when mouse is nearby
+- **Click Effect**: Particle burst animation on click
+- **Elastic Animation**: Smooth spring-back when cursor moves away
+
+### Smooth Scrolling
+- **Global**: Entire site uses Lenis for buttery-smooth scrolling
+- **Programmatic**: Use `scrollTo('#section-id')` for smooth navigation
+
 ## Architecture Overview
 
 This is a React portfolio website with advanced 3D graphics and animations built using:
