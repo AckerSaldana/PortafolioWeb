@@ -198,7 +198,7 @@ export function measurePerformance(fn, label = 'Operation') {
     const end = performance.now();
 
     if (end - start > 16) { // Longer than 1 frame (60fps = 16.67ms)
-      console.warn(`⚠️ ${label} took ${(end - start).toFixed(2)}ms (frame budget: 16ms)`);
+      console.warn(`[!] ${label} took ${(end - start).toFixed(2)}ms (frame budget: 16ms)`);
     }
 
     return result;

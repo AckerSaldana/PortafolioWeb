@@ -14,14 +14,27 @@ const Window = ({
   onFocus,
   onClose,
   onMinimize,
+  onMaximize,
+  isMaximized = false,
   zIndex
 }) => {
   const windowRef = useRef(null);
   const headerRef = useRef(null);
   const { isMobile, isTablet, windowSize } = useBreakpoint();
 
+  // Store pre-maximized state
+  const [preMaximizedState, setPreMaximizedState] = useState({ x, y, width, height });
+
   // Calculate responsive dimensions (memoized for performance)
   const dimensions = useMemo(() => {
+    // If maximized, use full viewport
+    if (isMaximized) {
+      return {
+        width: windowSize.width,
+        height: windowSize.height - 48, // Account for taskbar
+      };
+    }
+
     if (isMobile) {
       // Near full-screen on mobile
       return {
@@ -37,14 +50,36 @@ const Window = ({
     }
     // Desktop: use provided dimensions
     return { width, height };
-  }, [isMobile, isTablet, windowSize.width, windowSize.height, width, height]);
+  }, [isMobile, isTablet, windowSize.width, windowSize.height, width, height, isMaximized]);
 
   const [position, setPosition] = useState({ x, y });
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
 
+  // Adjust position when maximized state changes
+  useEffect(() => {
+    if (isMaximized) {
+      // Store current state before maximizing
+      setPreMaximizedState({
+        x: position.x,
+        y: position.y,
+        width: dimensions.width,
+        height: dimensions.height
+      });
+      // Move to top-left when maximized
+      setPosition({ x: 0, y: 0 });
+    } else {
+      // Restore previous position when un-maximizing
+      if (preMaximizedState) {
+        setPosition({ x: preMaximizedState.x, y: preMaximizedState.y });
+      }
+    }
+  }, [isMaximized]);
+
   // Adjust position when window size changes (responsive)
   useEffect(() => {
+    if (isMaximized) return; // Don't adjust if maximized
+
     if (isMobile) {
       // Center on mobile
       setPosition({
@@ -71,6 +106,7 @@ const Window = ({
 
   const handleMouseDown = (e) => {
     if (e.target.closest('.window-controls')) return;
+    if (isMaximized) return; // Prevent dragging when maximized
 
     setIsDragging(true);
     dragStart.current = {
@@ -82,6 +118,7 @@ const Window = ({
 
   const handleTouchStart = (e) => {
     if (e.target.closest('.window-controls')) return;
+    if (isMaximized) return; // Prevent dragging when maximized
 
     setIsDragging(true);
     const touch = e.touches[0];
@@ -90,6 +127,13 @@ const Window = ({
       y: touch.clientY - position.y
     };
     onFocus();
+  };
+
+  // Double-click header to maximize/restore
+  const handleHeaderDoubleClick = () => {
+    if (onMaximize && !isMobile) {
+      onMaximize();
+    }
   };
 
   useEffect(() => {
@@ -154,7 +198,9 @@ const Window = ({
   return (
     <div
       ref={windowRef}
-      className={`fixed bg-black/75 backdrop-blur-xl border rounded-lg shadow-2xl flex flex-col font-['JetBrains_Mono'] ${
+      className={`fixed bg-black/75 backdrop-blur-xl border shadow-2xl flex flex-col font-['JetBrains_Mono'] ${
+        isMaximized ? 'rounded-none' : 'rounded-lg'
+      } ${
         isActive ? 'border-white/15' : 'border-white/8'
       }`}
       style={{
@@ -173,11 +219,14 @@ const Window = ({
       {/* Window Header */}
       <div
         ref={headerRef}
-        className={`bg-white/5 border-b border-white/8 flex items-center justify-between px-3 cursor-move select-none ${
+        className={`bg-white/5 border-b border-white/8 flex items-center justify-between px-3 select-none ${
+          isMaximized ? 'cursor-default' : 'cursor-move'
+        } ${
           isMobile ? 'h-12' : 'h-9'
         }`}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
+        onDoubleClick={handleHeaderDoubleClick}
       >
         <div className={`text-gray-400 font-semibold tracking-wide ${isMobile ? 'text-sm' : 'text-xs'}`}>
           {title}
@@ -191,10 +240,11 @@ const Window = ({
             title="Minimize"
           />
           <button
+            onClick={onMaximize}
             className={`rounded-full bg-[#28c840] hover:brightness-110 transition-all ${
               isMobile ? 'w-8 h-8' : 'w-3 h-3'
             }`}
-            title="Maximize"
+            title={isMaximized ? "Restore" : "Maximize"}
           />
           <button
             onClick={onClose}
@@ -207,7 +257,11 @@ const Window = ({
       </div>
 
       {/* Window Body */}
-      <div className="flex-1 overflow-hidden relative">
+      <div
+        className="flex-1 overflow-hidden relative"
+        onWheel={(e) => e.stopPropagation()}
+        style={{ overscrollBehavior: 'contain' }}
+      >
         {children}
       </div>
     </div>

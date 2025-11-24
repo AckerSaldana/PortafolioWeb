@@ -5,7 +5,11 @@ import Window from './Window';
 import TerminalWindow from './TerminalWindow';
 import ProjectExplorer from './ProjectExplorer';
 import PhotoGallery from './PhotoGallery';
+import AboutMeWindow from './AboutMeWindow';
+import ContactWindow from './ContactWindow';
+import SkillsWindow from './SkillsWindow';
 import useBreakpoint from '../hooks/useBreakpoint';
+import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
 
 const DesktopOS = () => {
   const navigate = useNavigate();
@@ -15,6 +19,7 @@ const DesktopOS = () => {
   const [windows, setWindows] = useState({});
   const [activeWindow, setActiveWindow] = useState(null);
   const [minimizedWindows, setMinimizedWindows] = useState(new Set());
+  const [maximizedWindows, setMaximizedWindows] = useState(new Set());
   const [time, setTime] = useState(new Date());
   const [showStartMenu, setShowStartMenu] = useState(false);
   const [isShuttingDown, setIsShuttingDown] = useState(false);
@@ -44,23 +49,50 @@ const DesktopOS = () => {
       height: isMobile ? windowSize.height - 120 : 400,
       ...getResponsivePosition(0)
     },
+    about: {
+      id: 'about',
+      title: 'About Me',
+      icon: '[i]',
+      component: AboutMeWindow,
+      width: isMobile ? windowSize.width - 20 : 650,
+      height: isMobile ? windowSize.height - 120 : 550,
+      ...getResponsivePosition(1)
+    },
+    skills: {
+      id: 'skills',
+      title: 'Skills',
+      icon: '[+]',
+      component: SkillsWindow,
+      width: isMobile ? windowSize.width - 20 : 600,
+      height: isMobile ? windowSize.height - 120 : 500,
+      ...getResponsivePosition(2)
+    },
     projects: {
       id: 'projects',
       title: 'Project Explorer',
-      icon: '📁',
+      icon: '[ ]',
       component: ProjectExplorer,
       width: isMobile ? windowSize.width - 20 : 700,
       height: isMobile ? windowSize.height - 120 : 500,
-      ...getResponsivePosition(1)
+      ...getResponsivePosition(3)
+    },
+    contact: {
+      id: 'contact',
+      title: 'Contact',
+      icon: '[@]',
+      component: ContactWindow,
+      width: isMobile ? windowSize.width - 20 : 550,
+      height: isMobile ? windowSize.height - 120 : 600,
+      ...getResponsivePosition(4)
     },
     gallery: {
       id: 'gallery',
       title: 'Photo Gallery',
-      icon: '📷',
+      icon: '[#]',
       component: PhotoGallery,
       width: isMobile ? windowSize.width - 20 : 800,
       height: isMobile ? windowSize.height - 120 : 600,
-      ...getResponsivePosition(2)
+      ...getResponsivePosition(5)
     }
   };
 
@@ -142,10 +174,25 @@ const DesktopOS = () => {
     const newMinimized = new Set(minimizedWindows);
     newMinimized.delete(appId);
     setMinimizedWindows(newMinimized);
+
+    // Remove from maximized if present
+    const newMaximized = new Set(maximizedWindows);
+    newMaximized.delete(appId);
+    setMaximizedWindows(newMaximized);
   };
 
   const minimizeWindow = (appId) => {
     setMinimizedWindows(new Set([...minimizedWindows, appId]));
+  };
+
+  const maximizeWindow = (appId) => {
+    const newMaximized = new Set(maximizedWindows);
+    if (newMaximized.has(appId)) {
+      newMaximized.delete(appId); // Restore
+    } else {
+      newMaximized.add(appId); // Maximize
+    }
+    setMaximizedWindows(newMaximized);
   };
 
   const focusWindow = (appId) => {
@@ -168,6 +215,62 @@ const DesktopOS = () => {
     e.stopPropagation();
     setSelectedIcon(appId);
   };
+
+  // Keyboard shortcut handlers
+  const handleAltTab = () => {
+    const windowIds = Object.keys(windows).filter(id => !minimizedWindows.has(id));
+    if (windowIds.length === 0) return;
+
+    const currentIndex = windowIds.indexOf(activeWindow);
+    const nextIndex = (currentIndex + 1) % windowIds.length;
+    focusWindow(windowIds[nextIndex]);
+  };
+
+  const handleEscape = () => {
+    // Close start menu if open
+    if (showStartMenu) {
+      setShowStartMenu(false);
+      return;
+    }
+    // Otherwise close active window
+    if (activeWindow) {
+      closeWindow(activeWindow);
+    }
+  };
+
+  const handleAltF4 = () => {
+    if (activeWindow) {
+      closeWindow(activeWindow);
+    }
+  };
+
+  const handleMinimizeAll = () => {
+    const allWindows = Object.keys(windows);
+    setMinimizedWindows(new Set(allWindows));
+    setActiveWindow(null);
+  };
+
+  const handleMinimizeActive = () => {
+    if (activeWindow) {
+      minimizeWindow(activeWindow);
+    }
+  };
+
+  const handleMaximizeActive = () => {
+    if (activeWindow) {
+      maximizeWindow(activeWindow);
+    }
+  };
+
+  // Register keyboard shortcuts
+  useKeyboardShortcuts({
+    onAltTab: handleAltTab,
+    onEscape: handleEscape,
+    onAltF4: handleAltF4,
+    onMinimizeAll: handleMinimizeAll,
+    onMinimizeActive: handleMinimizeActive,
+    onMaximizeActive: handleMaximizeActive,
+  });
 
   const handleShutdown = () => {
     setShowStartMenu(false);
@@ -350,8 +453,8 @@ const DesktopOS = () => {
                   }
                 }}
               >
-                <div className={`mb-2 flex items-center justify-center bg-gradient-to-br from-[#2a303c] to-[#161b22] rounded-xl border shadow-lg text-[#0affc2] ${
-                  isMobile ? 'w-16 h-16 text-3xl' : 'w-12 h-12 text-2xl'
+                <div className={`mb-2 flex items-center justify-center bg-gradient-to-br from-[#2a303c] to-[#161b22] rounded-xl border shadow-lg text-[#0affc2] font-['JetBrains_Mono'] font-bold ${
+                  isMobile ? 'w-16 h-16 text-2xl' : 'w-12 h-12 text-lg'
                 } ${
                   isSelected ? 'border-[#0affc2]/60' : 'border-white/8'
                 }`}>
@@ -371,6 +474,7 @@ const DesktopOS = () => {
         const win = windows[appId];
         const Component = win.component;
         const isMinimized = minimizedWindows.has(appId);
+        const isMaximized = maximizedWindows.has(appId);
 
         if (isMinimized) return null;
 
@@ -384,9 +488,11 @@ const DesktopOS = () => {
             x={win.x}
             y={win.y}
             isActive={activeWindow === appId}
+            isMaximized={isMaximized}
             onFocus={() => focusWindow(appId)}
             onClose={() => closeWindow(appId)}
             onMinimize={() => minimizeWindow(appId)}
+            onMaximize={() => maximizeWindow(appId)}
             zIndex={win.zIndex}
           >
             <Component onOpenWindow={openWindow} />
@@ -435,7 +541,7 @@ const DesktopOS = () => {
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/10 transition-all text-left"
                     >
                       <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-[#2a303c] to-[#161b22] rounded-lg border border-white/8">
-                        <span className="text-sm">{app.icon}</span>
+                        <span className="text-sm font-['JetBrains_Mono'] font-bold text-[#0affc2]">{app.icon}</span>
                       </div>
                       <span className="text-sm text-gray-300">{app.title}</span>
                     </button>

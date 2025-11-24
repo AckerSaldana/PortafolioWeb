@@ -189,15 +189,15 @@ const IntroSequence = ({ onComplete }) => {
         <h2 className="objectives-title">MISSION OBJECTIVES</h2>
         <div className="objectives-list">
           <div className="objective">
-            <span className="objective-icon">🎯</span>
+            <span className="objective-icon">[>]</span>
             <span className="objective-text">EXPLORE DEVELOPER CAPABILITIES</span>
           </div>
           <div className="objective">
-            <span className="objective-icon">🚀</span>
+            <span className="objective-icon">[^]</span>
             <span className="objective-text">DISCOVER PROJECT INNOVATIONS</span>
           </div>
           <div className="objective">
-            <span className="objective-icon">✨</span>
+            <span className="objective-icon">[*]</span>
             <span className="objective-text">ESTABLISH CONTACT PROTOCOLS</span>
           </div>
         </div>

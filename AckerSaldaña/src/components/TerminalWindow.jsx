@@ -106,6 +106,7 @@ const TerminalWindow = ({ onOpenWindow }) => {
       className="h-full p-4 overflow-y-auto text-sm text-[#e0e0e0] cursor-text"
       onClick={() => inputRef.current?.focus()}
       ref={outputRef}
+      style={{ overscrollBehavior: 'contain' }}
     >
       {output.map((line, i) => (
         <div key={i} className={line.startsWith('guest@') ? 'text-[#0affc2]' : ''}>

@@ -85,7 +85,10 @@ const PhotoGallery = () => {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-4">
+    <div
+      className="h-full overflow-y-auto p-4"
+      style={{ overscrollBehavior: 'contain' }}
+    >
       <div className="grid grid-cols-3 gap-3">
         {photos.map((photo) => (
           <div

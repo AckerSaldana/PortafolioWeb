@@ -241,43 +241,43 @@ class AssetLoader {
       return {
         message: 'INITIALIZING MISSION SYSTEMS...',
         stage: 'init',
-        icon: '🚀'
+        icon: '[^]'
       };
     } else if (progress < 40) {
       return {
         message: 'LOADING 3D NAVIGATION MODELS...',
         stage: 'models',
-        icon: '🛸'
+        icon: '[o]'
       };
     } else if (progress < 60) {
       return {
         message: 'CALIBRATING PARTICLE FIELD...',
         stage: 'particles',
-        icon: '✨'
+        icon: '[*]'
       };
     } else if (progress < 80) {
       return {
         message: 'ESTABLISHING COMMUNICATIONS...',
         stage: 'comms',
-        icon: '📡'
+        icon: '[~]'
       };
     } else if (progress < 95) {
       return {
         message: 'FINAL SYSTEMS CHECK...',
         stage: 'check',
-        icon: '⚡'
+        icon: '[!]'
       };
     } else if (progress < 100) {
       return {
         message: 'LAUNCH SEQUENCE READY...',
         stage: 'ready',
-        icon: '🎯'
+        icon: '[>]'
       };
     } else {
       return {
         message: 'MISSION START',
         stage: 'complete',
-        icon: '🌟'
+        icon: '[+]'
       };
     }
   }

@@ -6,91 +6,91 @@
 export const projects = [
   {
     id: 'project-1',
-    slug: 'portfolio-v2',
-    title: 'Portfolio v2.0',
-    tagline: 'Interactive Space Odyssey',
-    description: 'A performance-first portfolio with 3D graphics, GSAP animations, and space-themed narrative. Features include interactive 3D TV, particle systems, and playable Pong game.',
-    category: 'Web Development',
-    image: '/images/projects/portfolio.jpg', // Update with actual path
+    slug: 'path-explorer',
+    title: 'PathExplorer',
+    tagline: 'AI-Powered Talent Management',
+    description: 'AI-powered talent management system with CV parsing, smart project matching, and workforce analytics',
+    category: 'Full Stack',
+    image: '/images/projects/pathexplorer.jpg',
     video: null,
-    techStack: ['React', 'Three.js', 'GSAP', 'Tailwind CSS v4', 'Vite', 'Firebase'],
+    techStack: ['React', 'Node.js', 'Supabase', 'OpenAI GPT'],
     links: {
-      live: 'https://your-portfolio.com',
-      github: 'https://github.com/yourusername/portfolio',
+      live: null,
+      github: 'https://github.com/AckerSaldana/AMPL',
     },
     metrics: {
-      duration: '3 months',
-      team: 'Solo',
-      impact: 'Awwwards Nominee'
+      duration: '4 months',
+      team: 'Team Project',
+      impact: 'AI-driven matching'
     },
     featured: true,
     year: 2024
   },
   {
     id: 'project-2',
-    slug: 'project-name-2',
-    title: 'Project Name 2',
-    tagline: 'Short compelling tagline',
-    description: 'Detailed description of the project, what problem it solves, and how you built it. Focus on impact and innovation.',
-    category: 'Full Stack',
-    image: '/images/projects/project-2.jpg',
+    slug: 'aylinn-carre',
+    title: 'Aylinn Carré Portfolio',
+    tagline: 'Industrial Design Showcase',
+    description: 'Industrial design portfolio with sketch-style UI and Firebase-powered admin panel',
+    category: 'Web Development',
+    image: '/images/projects/aylinn.jpg',
     video: null,
-    techStack: ['React', 'Node.js', 'MongoDB', 'Docker'],
+    techStack: ['React 18', 'Firebase', 'Material-UI', 'Vite'],
     links: {
-      live: 'https://project2.com',
-      github: 'https://github.com/yourusername/project2',
+      live: 'https://aylinncarre.com',
+      github: 'https://github.com/AckerSaldana/AylinnCarre',
     },
     metrics: {
       duration: '2 months',
-      team: '3 developers',
-      impact: '+200% performance boost'
+      team: 'Solo',
+      impact: 'Client Portfolio'
     },
     featured: true,
     year: 2024
   },
   {
     id: 'project-3',
-    slug: 'project-name-3',
-    title: 'Project Name 3',
-    tagline: 'Another great project',
-    description: 'Description focusing on technical challenges, solutions implemented, and results achieved. Highlight unique features.',
-    category: 'Mobile App',
-    image: '/images/projects/project-3.jpg',
+    slug: 'sidney-kylie',
+    title: 'Sidney Kylie Architecture',
+    tagline: 'Minimalist Architecture Portfolio',
+    description: 'Minimalist architect portfolio with circular transitions and Apple-style animations',
+    category: 'Web Development',
+    image: '/images/projects/sidney.jpg',
     video: null,
-    techStack: ['React Native', 'Python', 'PostgreSQL'],
+    techStack: ['React', 'CSS Modules', 'Custom Animations'],
     links: {
-      live: 'https://project3.com',
-      github: 'https://github.com/yourusername/project3',
+      live: 'https://sidneykylie-d4e5e.web.app',
+      github: 'https://github.com/AckerSaldana/SidneyKylie',
     },
     metrics: {
-      duration: '4 months',
+      duration: '3 weeks',
       team: 'Solo',
-      impact: '10k+ users'
+      impact: 'Premium Design'
     },
     featured: true,
-    year: 2023
+    year: 2024
   },
   {
     id: 'project-4',
-    slug: 'project-name-4',
-    title: 'Project Name 4',
-    tagline: 'Innovative solution',
-    description: 'Project description highlighting the problem space, your approach, and the technology choices you made.',
-    category: 'AI/ML',
-    image: '/images/projects/project-4.jpg',
+    slug: 'portfolio-v2',
+    title: 'Portfolio v2.0',
+    tagline: 'Interactive Space Odyssey',
+    description: 'Personal portfolio with 3D graphics, particle systems, and desktop OS interface',
+    category: 'Web Development',
+    image: '/images/projects/portfolio.jpg',
     video: null,
-    techStack: ['Python', 'TensorFlow', 'FastAPI', 'Docker'],
+    techStack: ['React', 'Three.js', 'GSAP', 'Tailwind CSS'],
     links: {
-      live: null, // Private or internal project
-      github: 'https://github.com/yourusername/project4',
+      live: null,
+      github: 'https://github.com/AckerSaldana',
     },
     metrics: {
-      duration: '6 months',
-      team: '2 developers',
-      impact: '95% accuracy'
+      duration: '2 months',
+      team: 'Solo',
+      impact: 'Portfolio Showcase'
     },
     featured: true,
-    year: 2023
+    year: 2024
   }
 ];
 
