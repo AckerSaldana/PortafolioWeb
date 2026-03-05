@@ -514,14 +514,61 @@ body {
 /* OS Cursor */
 .os-cursor {
   will-change: transform;
-  animation: cursor-pulse 2s ease-in-out infinite;
 }
 
-@keyframes cursor-pulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 3px rgba(10, 255, 194, 0.5));
+/* Windows 11 Spinner */
+.win11-spinner {
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+.win11-spinner-dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #60cdff;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  margin: -2px 0 0 -2px;
+  animation: win11-orbit 1.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+@keyframes win11-orbit {
+  0% {
+    opacity: 0;
+    transform: rotate(0deg) translate(14px) rotate(0deg);
   }
-  50% {
-    filter: drop-shadow(0 0 6px rgba(10, 255, 194, 0.8));
+  15% {
+    opacity: 1;
   }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(360deg) translate(14px) rotate(-360deg);
+  }
+}
+
+/* Windows 11 Focus Ring */
+*:focus-visible {
+  outline: 2px solid #60cdff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Windows 11 Acrylic Material */
+.win11-acrylic {
+  background: rgba(44, 44, 44, 0.65);
+  backdrop-filter: blur(30px) saturate(125%);
+  -webkit-backdrop-filter: blur(30px) saturate(125%);
+}
+
+/* Windows 11 Mica Material */
+.win11-mica {
+  background: rgba(32, 32, 32, 0.80);
+  backdrop-filter: blur(80px) saturate(125%);
+  -webkit-backdrop-filter: blur(80px) saturate(125%);
 }

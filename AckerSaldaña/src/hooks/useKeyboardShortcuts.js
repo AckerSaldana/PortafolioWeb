@@ -5,12 +5,14 @@ import { useEffect } from 'react';
  * @param {Object} handlers - Object containing shortcut handlers
  */
 const useKeyboardShortcuts = ({
-  onAltTab,       // Cycle through windows
-  onEscape,       // Close active window or menu
-  onAltF4,        // Close active window
-  onMinimizeAll,  // Win/Cmd + D - Minimize all
-  onMinimizeActive, // Win/Cmd + M - Minimize active
-  onMaximizeActive, // Win/Cmd + Up - Maximize active
+  onAltTab,
+  onEscape,
+  onAltF4,
+  onMinimizeAll,
+  onMinimizeActive,
+  onMaximizeActive,
+  onSnapLeft,
+  onSnapRight,
 }) => {
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -55,6 +57,20 @@ const useKeyboardShortcuts = ({
         onMaximizeActive?.();
         return;
       }
+
+      // Cmd/Win + Left Arrow - Snap left
+      if ((e.metaKey || e.ctrlKey) && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        onSnapLeft?.();
+        return;
+      }
+
+      // Cmd/Win + Right Arrow - Snap right
+      if ((e.metaKey || e.ctrlKey) && e.key === 'ArrowRight') {
+        e.preventDefault();
+        onSnapRight?.();
+        return;
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -62,7 +78,7 @@ const useKeyboardShortcuts = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onAltTab, onEscape, onAltF4, onMinimizeAll, onMinimizeActive, onMaximizeActive]);
+  }, [onAltTab, onEscape, onAltF4, onMinimizeAll, onMinimizeActive, onMaximizeActive, onSnapLeft, onSnapRight]);
 };
 
 export default useKeyboardShortcuts;

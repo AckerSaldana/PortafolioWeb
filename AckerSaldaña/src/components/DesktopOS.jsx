@@ -9,155 +9,163 @@ import AboutMeWindow from './AboutMeWindow';
 import ContactWindow from './ContactWindow';
 import SkillsWindow from './SkillsWindow';
 import OSCursor from './OSCursor';
+import Taskbar from './os/Taskbar';
+import StartMenu from './os/StartMenu';
+import ContextMenu from './os/ContextMenu';
+import NotificationCenter from './os/NotificationCenter';
+import DesktopWidgets from './os/DesktopWidgets';
+import SnapPreview from './os/SnapPreview';
+import SettingsWindow from './SettingsWindow';
+import { TerminalIcon, ProjectsIcon, AboutIcon, SkillsIcon, ContactIcon, GalleryIcon, SettingsIcon, RefreshIcon, PaletteIcon } from './os/AppIcons';
 import useBreakpoint from '../hooks/useBreakpoint';
 import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
 
 const DesktopOS = () => {
   const navigate = useNavigate();
   const { isMobile, isTablet, windowSize } = useBreakpoint();
+
+  // Boot state
   const [bootComplete, setBootComplete] = useState(false);
-  const [bootLines, setBootLines] = useState([]);
+  const [bootProgress, setBootProgress] = useState(0);
+  const [desktopReady, setDesktopReady] = useState(false);
+
+  // Window management
   const [windows, setWindows] = useState({});
   const [activeWindow, setActiveWindow] = useState(null);
   const [minimizedWindows, setMinimizedWindows] = useState(new Set());
   const [maximizedWindows, setMaximizedWindows] = useState(new Set());
+  const [snappedWindows, setSnappedWindows] = useState({});
+
+  // UI state
   const [time, setTime] = useState(new Date());
   const [showStartMenu, setShowStartMenu] = useState(false);
-  const [isShuttingDown, setIsShuttingDown] = useState(false);
-  const [shutdownLines, setShutdownLines] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [contextMenu, setContextMenu] = useState(null);
   const [selectedIcon, setSelectedIcon] = useState(null);
+  const [isShuttingDown, setIsShuttingDown] = useState(false);
+  const [dragSnapPreview] = useState(null);
+
+  // Settings state
+  const defaultWallpaper = 'radial-gradient(ellipse at 30% 20%, #1a3a5c 0%, #0d1b2a 35%, #0a0e17 60%, #060608 100%)';
+  const [osSettings, setOsSettings] = useState({
+    wallpaper: defaultWallpaper,
+    accentColor: '#60cdff',
+    showWidgets: true,
+  });
+
   const zIndexCounter = useRef(100);
   const shutdownRef = useRef(null);
   const desktopRef = useRef(null);
 
-  // Calculate responsive initial positions based on viewport
+  // Responsive initial positions
   const getResponsivePosition = (index) => {
-    if (isMobile) {
-      return { x: 10, y: 10 };
-    } else if (isTablet) {
-      return { x: 50 + (index * 30), y: 50 + (index * 30) };
-    }
-    return { x: 100 + (index * 50), y: 100 + (index * 50) };
+    if (isMobile) return { x: 10, y: 10 };
+    if (isTablet) return { x: 50 + (index * 30), y: 50 + (index * 30) };
+    return { x: 100 + (index * 50), y: 80 + (index * 40) };
   };
 
   const apps = {
     terminal: {
-      id: 'terminal',
-      title: 'Terminal',
-      icon: '>_',
+      id: 'terminal', title: 'Terminal', icon: TerminalIcon,
       component: TerminalWindow,
       width: isMobile ? windowSize.width - 20 : 600,
       height: isMobile ? windowSize.height - 120 : 400,
       ...getResponsivePosition(0)
     },
     about: {
-      id: 'about',
-      title: 'About Me',
-      icon: '[i]',
+      id: 'about', title: 'About Me', icon: AboutIcon,
       component: AboutMeWindow,
       width: isMobile ? windowSize.width - 20 : 650,
       height: isMobile ? windowSize.height - 120 : 550,
       ...getResponsivePosition(1)
     },
     skills: {
-      id: 'skills',
-      title: 'Skills',
-      icon: '[+]',
+      id: 'skills', title: 'Skills', icon: SkillsIcon,
       component: SkillsWindow,
       width: isMobile ? windowSize.width - 20 : 600,
       height: isMobile ? windowSize.height - 120 : 500,
       ...getResponsivePosition(2)
     },
     projects: {
-      id: 'projects',
-      title: 'Project Explorer',
-      icon: '[ ]',
+      id: 'projects', title: 'Project Explorer', icon: ProjectsIcon,
       component: ProjectExplorer,
       width: isMobile ? windowSize.width - 20 : 700,
       height: isMobile ? windowSize.height - 120 : 500,
       ...getResponsivePosition(3)
     },
     contact: {
-      id: 'contact',
-      title: 'Contact',
-      icon: '[@]',
+      id: 'contact', title: 'Contact', icon: ContactIcon,
       component: ContactWindow,
       width: isMobile ? windowSize.width - 20 : 550,
       height: isMobile ? windowSize.height - 120 : 600,
       ...getResponsivePosition(4)
     },
     gallery: {
-      id: 'gallery',
-      title: 'Photo Gallery',
-      icon: '[#]',
+      id: 'gallery', title: 'Photo Gallery', icon: GalleryIcon,
       component: PhotoGallery,
       width: isMobile ? windowSize.width - 20 : 800,
       height: isMobile ? windowSize.height - 120 : 600,
       ...getResponsivePosition(5)
+    },
+    settings: {
+      id: 'settings', title: 'Settings', icon: SettingsIcon,
+      component: SettingsWindow,
+      width: isMobile ? windowSize.width - 20 : 750,
+      height: isMobile ? windowSize.height - 120 : 500,
+      ...getResponsivePosition(6)
     }
   };
 
-  // Boot sequence
+  // === Boot sequence ===
   useEffect(() => {
-    const bootMessages = [
-      { text: 'PORTFOLIO OS v2.0.1', delay: 0 },
-      { text: 'Initializing system...', delay: 300 },
-      { text: '[OK] Memory check completed', delay: 500 },
-      { text: '[OK] Loading React framework...', delay: 700 },
-      { text: '[OK] GSAP animation engine ready', delay: 900 },
-      { text: '[OK] Three.js renderer initialized', delay: 1100 },
-      { text: 'Loading desktop environment...', delay: 1300 },
-      { text: '[OK] Desktop ready', delay: 1500 },
-      { text: '', delay: 1700 },
-      { text: 'Welcome, Acker Saldaña', delay: 1900, special: true }
+    const steps = [
+      { progress: 15, delay: 200 },
+      { progress: 35, delay: 500 },
+      { progress: 60, delay: 900 },
+      { progress: 85, delay: 1300 },
+      { progress: 100, delay: 1700 },
     ];
-
-    bootMessages.forEach((msg) => {
-      setTimeout(() => {
-        setBootLines((prev) => [...prev, msg]);
-      }, msg.delay);
+    steps.forEach(({ progress, delay }) => {
+      setTimeout(() => setBootProgress(progress), delay);
     });
-
     setTimeout(() => {
       setBootComplete(true);
-      // Auto-open terminal
       setTimeout(() => openWindow('terminal'), 500);
     }, 2200);
   }, []);
 
+  // Desktop entrance animation
+  useEffect(() => {
+    if (bootComplete) {
+      const timer = setTimeout(() => setDesktopReady(true), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [bootComplete]);
+
   // Clock
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
+    const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
+  // === Window management ===
   const openWindow = (appId) => {
     if (windows[appId] && !minimizedWindows.has(appId)) {
-      // Window exists and not minimized, just focus it
       focusWindow(appId);
       return;
     }
-
     if (minimizedWindows.has(appId)) {
-      // Restore minimized window
       const newMinimized = new Set(minimizedWindows);
       newMinimized.delete(appId);
       setMinimizedWindows(newMinimized);
       focusWindow(appId);
       return;
     }
-
-    // Create new window
     const app = apps[appId];
-    setWindows({
-      ...windows,
-      [appId]: {
-        ...app,
-        zIndex: ++zIndexCounter.current
-      }
-    });
+    setWindows(prev => ({
+      ...prev,
+      [appId]: { ...app, zIndex: ++zIndexCounter.current }
+    }));
     setActiveWindow(appId);
   };
 
@@ -165,51 +173,65 @@ const DesktopOS = () => {
     const newWindows = { ...windows };
     delete newWindows[appId];
     setWindows(newWindows);
-
     if (activeWindow === appId) {
-      const remainingWindows = Object.keys(newWindows);
-      setActiveWindow(remainingWindows.length > 0 ? remainingWindows[0] : null);
+      const remaining = Object.keys(newWindows);
+      setActiveWindow(remaining.length > 0 ? remaining[remaining.length - 1] : null);
     }
-
-    // Remove from minimized if present
     const newMinimized = new Set(minimizedWindows);
     newMinimized.delete(appId);
     setMinimizedWindows(newMinimized);
-
-    // Remove from maximized if present
     const newMaximized = new Set(maximizedWindows);
     newMaximized.delete(appId);
     setMaximizedWindows(newMaximized);
+    const { [appId]: _, ...restSnapped } = snappedWindows;
+    setSnappedWindows(restSnapped);
   };
 
   const minimizeWindow = (appId) => {
     setMinimizedWindows(new Set([...minimizedWindows, appId]));
+    if (activeWindow === appId) {
+      const visibleWindows = Object.keys(windows).filter(
+        id => id !== appId && !minimizedWindows.has(id)
+      );
+      setActiveWindow(visibleWindows.length > 0 ? visibleWindows[visibleWindows.length - 1] : null);
+    }
   };
 
   const maximizeWindow = (appId) => {
+    const { [appId]: _, ...restSnapped } = snappedWindows;
+    setSnappedWindows(restSnapped);
     const newMaximized = new Set(maximizedWindows);
     if (newMaximized.has(appId)) {
-      newMaximized.delete(appId); // Restore
+      newMaximized.delete(appId);
     } else {
-      newMaximized.add(appId); // Maximize
+      newMaximized.add(appId);
     }
     setMaximizedWindows(newMaximized);
   };
 
-  const focusWindow = (appId) => {
-    setActiveWindow(appId);
-    setWindows({
-      ...windows,
-      [appId]: {
-        ...windows[appId],
-        zIndex: ++zIndexCounter.current
-      }
-    });
+  const snapWindow = (appId, zone) => {
+    if (zone === 'maximize') {
+      maximizeWindow(appId);
+      return;
+    }
+    const newMaximized = new Set(maximizedWindows);
+    newMaximized.delete(appId);
+    setMaximizedWindows(newMaximized);
+    setSnappedWindows(prev => ({ ...prev, [appId]: zone }));
   };
 
+  const focusWindow = (appId) => {
+    setActiveWindow(appId);
+    setWindows(prev => ({
+      ...prev,
+      [appId]: { ...prev[appId], zIndex: ++zIndexCounter.current }
+    }));
+  };
+
+  // === Desktop interactions ===
   const handleDesktopIconClick = (appId) => {
     openWindow(appId);
-    setSelectedIcon(null); // Clear selection when opening
+    setSelectedIcon(null);
   };
 
   const handleDesktopIconSelect = (e, appId) => {
@@ -217,53 +239,63 @@ const DesktopOS = () => {
     setSelectedIcon(appId);
   };
 
-  // Keyboard shortcut handlers
+  const handleDesktopRightClick = (e) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const contextMenuItems = [
+    { label: 'View', icon: null, onClick: () => {} },
+    { label: 'Sort by', icon: null, onClick: () => {} },
+    { label: 'Refresh', icon: RefreshIcon, onClick: () => window.location.reload(), shortcut: 'F5' },
+    { separator: true },
+    { label: 'New Terminal', icon: TerminalIcon, onClick: () => openWindow('terminal') },
+    { label: 'Open Projects', icon: ProjectsIcon, onClick: () => openWindow('projects') },
+    { separator: true },
+    { label: 'Personalize', icon: PaletteIcon, onClick: () => openWindow('settings') },
+  ];
+
+  // === Keyboard shortcuts ===
   const handleAltTab = () => {
     const windowIds = Object.keys(windows).filter(id => !minimizedWindows.has(id));
     if (windowIds.length === 0) return;
-
     const currentIndex = windowIds.indexOf(activeWindow);
     const nextIndex = (currentIndex + 1) % windowIds.length;
     focusWindow(windowIds[nextIndex]);
   };
 
   const handleEscape = () => {
-    // Close start menu if open
-    if (showStartMenu) {
-      setShowStartMenu(false);
-      return;
-    }
-    // Otherwise close active window
-    if (activeWindow) {
-      closeWindow(activeWindow);
-    }
+    if (showStartMenu) { setShowStartMenu(false); return; }
+    if (showNotifications) { setShowNotifications(false); return; }
+    if (contextMenu) { setContextMenu(null); return; }
+    if (activeWindow) closeWindow(activeWindow);
   };
 
   const handleAltF4 = () => {
-    if (activeWindow) {
-      closeWindow(activeWindow);
-    }
+    if (activeWindow) closeWindow(activeWindow);
   };
 
   const handleMinimizeAll = () => {
-    const allWindows = Object.keys(windows);
-    setMinimizedWindows(new Set(allWindows));
+    setMinimizedWindows(new Set(Object.keys(windows)));
     setActiveWindow(null);
   };
 
   const handleMinimizeActive = () => {
-    if (activeWindow) {
-      minimizeWindow(activeWindow);
-    }
+    if (activeWindow) minimizeWindow(activeWindow);
   };
 
   const handleMaximizeActive = () => {
-    if (activeWindow) {
-      maximizeWindow(activeWindow);
-    }
+    if (activeWindow) maximizeWindow(activeWindow);
   };
 
-  // Register keyboard shortcuts
+  const handleSnapLeft = () => {
+    if (activeWindow) snapWindow(activeWindow, 'left-half');
+  };
+
+  const handleSnapRight = () => {
+    if (activeWindow) snapWindow(activeWindow, 'right-half');
+  };
+
   useKeyboardShortcuts({
     onAltTab: handleAltTab,
     onEscape: handleEscape,
@@ -271,200 +303,133 @@ const DesktopOS = () => {
     onMinimizeAll: handleMinimizeAll,
     onMinimizeActive: handleMinimizeActive,
     onMaximizeActive: handleMaximizeActive,
+    onSnapLeft: handleSnapLeft,
+    onSnapRight: handleSnapRight,
   });
 
+  // === Shutdown ===
   const handleShutdown = () => {
     setShowStartMenu(false);
     setIsShuttingDown(true);
-
-    const shutdownMessages = [
-      { text: 'Shutting down Portfolio OS...', delay: 0 },
-      { text: 'Closing all windows...', delay: 400 },
-      { text: '[OK] Windows closed', delay: 600 },
-      { text: 'Saving state...', delay: 800 },
-      { text: '[OK] State saved', delay: 1000 },
-      { text: 'Stopping services...', delay: 1200 },
-      { text: '[OK] All services stopped', delay: 1400 },
-      { text: '', delay: 1600 },
-      { text: 'It is now safe to leave', delay: 1800, special: true }
-    ];
-
-    shutdownMessages.forEach((msg) => {
-      setTimeout(() => {
-        setShutdownLines((prev) => [...prev, msg]);
-      }, msg.delay);
-    });
-
-    // Fade out and navigate
     setTimeout(() => {
       if (shutdownRef.current) {
         gsap.to(shutdownRef.current, {
           opacity: 0,
           duration: 1,
           ease: 'power2.in',
-          onComplete: () => {
-            navigate('/');
-          }
+          onComplete: () => navigate('/'),
         });
       }
-    }, 2500);
+    }, 2000);
   };
 
-  // Close start menu when clicking outside
+  // Clear icon selection on desktop click
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (showStartMenu && !e.target.closest('.start-menu') && !e.target.closest('.start-btn')) {
+    const handler = (e) => {
+      if (desktopRef.current && e.target === desktopRef.current) {
+        setSelectedIcon(null);
         setShowStartMenu(false);
       }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showStartMenu]);
-
-  // Clear icon selection when clicking on desktop
-  useEffect(() => {
-    const handleDesktopClick = (e) => {
-      if (desktopRef.current && e.target === desktopRef.current) {
-        setSelectedIcon(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleDesktopClick);
-    return () => document.removeEventListener('mousedown', handleDesktopClick);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Shutdown screen
+  // === Shutdown screen ===
   if (isShuttingDown) {
     return (
-      <div ref={shutdownRef} className={`fixed inset-0 bg-black z-[200] flex flex-col font-['JetBrains_Mono'] overflow-hidden ${isMobile ? 'p-5' : 'p-10'}`}>
-        {/* CRT scanlines */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-40"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1))',
-            backgroundSize: '100% 4px'
-          }}
-        />
-
-        {/* Shutdown messages */}
-        <div className="relative z-10">
-          {shutdownLines.map((line, i) => (
-            <div
-              key={i}
-              className={`mb-1 ${
-                line.special
-                  ? `text-[#0affc2] font-bold mt-4 ${isMobile ? 'text-base' : 'text-xl'}`
-                  : line.text.includes('[OK]')
-                  ? 'text-[#0affc2]'
-                  : 'text-gray-400'
-              } ${isMobile ? 'text-xs' : 'text-sm'}`}
-              style={{ opacity: 0.9 }}
-            >
-              {line.text}
-            </div>
+      <div ref={shutdownRef} className="fixed inset-0 bg-black z-[200] flex flex-col items-center justify-center">
+        <div className="text-2xl font-light text-white mb-6" style={{ fontFamily: "'Inter', 'Segoe UI', sans-serif" }}>
+          Shutting down...
+        </div>
+        <div className="win11-spinner">
+          {[0,1,2,3,4].map(i => (
+            <div key={i} className="win11-spinner-dot" style={{ animationDelay: `${i * 0.12}s` }} />
           ))}
         </div>
       </div>
     );
   }
 
-  // Boot screen
+  // === Boot screen ===
   if (!bootComplete) {
     return (
-      <div className={`fixed inset-0 bg-black z-[200] flex flex-col font-['JetBrains_Mono'] overflow-hidden ${isMobile ? 'p-5' : 'p-10'}`}>
-        {/* CRT scanlines */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-40"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1))',
-            backgroundSize: '100% 4px'
-          }}
-        />
-
-        {/* Boot messages */}
-        <div className="relative z-10">
-          {bootLines.map((line, i) => (
-            <div
-              key={i}
-              className={`mb-1 ${
-                line.special
-                  ? `text-[#0affc2] font-bold mt-4 ${isMobile ? 'text-base' : 'text-xl'}`
-                  : line.text.includes('[OK]')
-                  ? 'text-[#0affc2]'
-                  : 'text-gray-400'
-              } ${isMobile ? 'text-xs' : 'text-sm'}`}
-              style={{ opacity: 0.9 }}
-            >
-              {line.text}
-            </div>
+      <div className="fixed inset-0 bg-black z-[200] flex flex-col items-center justify-center">
+        <div className="mb-10">
+          <div className="text-3xl font-light text-white tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', sans-serif" }}>
+            Portfolio<span className="text-[#60cdff] font-semibold">OS</span>
+          </div>
+        </div>
+        <div className="win11-spinner mb-8">
+          {[0,1,2,3,4].map(i => (
+            <div key={i} className="win11-spinner-dot" style={{ animationDelay: `${i * 0.12}s` }} />
           ))}
+        </div>
+        <div className="w-48 h-[3px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+          <div
+            className="h-full rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${bootProgress}%`, background: '#60cdff' }}
+          />
         </div>
       </div>
     );
   }
 
+  // === Desktop ===
   return (
-    <div className="fixed inset-0 bg-[#0f0f12] overflow-hidden">
-      {/* Custom OS Cursor */}
+    <div className="fixed inset-0 overflow-hidden" style={{ background: '#202020' }}>
       <OSCursor />
 
-      {/* Background gradient */}
+      {/* Wallpaper */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 transition-opacity duration-700"
         style={{
-          backgroundImage: 'radial-gradient(circle at 50% 50%, #1f2430 0%, #0a0a0a 100%)'
-        }}
-      />
-
-      {/* CRT scanlines overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none z-[9999] opacity-40"
-        style={{
-          background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1))',
-          backgroundSize: '100% 4px'
+          background: osSettings.wallpaper,
+          opacity: desktopReady ? 1 : 0,
         }}
       />
 
       {/* Desktop Area */}
       <div
         ref={desktopRef}
-        className={`absolute top-0 left-0 right-0 z-10 ${isMobile ? 'bottom-16 p-3' : 'bottom-12 p-5'}`}
+        className={`absolute top-0 left-0 right-0 z-10 ${isMobile ? 'bottom-14 p-3' : 'bottom-12 p-5'}`}
+        onContextMenu={handleDesktopRightClick}
       >
-        {/* Desktop Icons - Responsive Grid */}
-        <div className={`grid gap-3 ${
-          isMobile ? 'grid-cols-3' : isTablet ? 'grid-cols-4' : 'flex flex-wrap content-start gap-5'
+        <div className={`grid gap-1 ${
+          isMobile ? 'grid-cols-3' : isTablet ? 'grid-cols-4' : 'flex flex-wrap content-start gap-1'
         }`}>
           {Object.keys(apps).map((appId) => {
             const app = apps[appId];
+            const IconComponent = app.icon;
             const isSelected = selectedIcon === appId;
             return (
               <div
                 key={appId}
-                className={`flex flex-col items-center cursor-pointer p-2 rounded transition-all ${
-                  isMobile ? 'w-full' : 'w-20'
+                className={`desktop-icon flex flex-col items-center cursor-pointer rounded-md transition-all duration-150 ${
+                  isMobile ? 'w-full p-2' : 'w-[76px] p-2'
                 } ${
                   isSelected
-                    ? 'bg-[#0affc2]/20 border border-[#0affc2]/40'
+                    ? 'bg-white/10 border border-white/15'
                     : 'hover:bg-white/5 border border-transparent'
                 }`}
+                style={{ opacity: desktopReady ? 1 : 0, transition: 'opacity 0.4s ease 0.2s' }}
                 onDoubleClick={() => handleDesktopIconClick(appId)}
                 onClick={(e) => {
-                  if (isMobile) {
-                    handleDesktopIconClick(appId);
-                  } else {
-                    handleDesktopIconSelect(e, appId);
-                  }
+                  if (isMobile) handleDesktopIconClick(appId);
+                  else handleDesktopIconSelect(e, appId);
                 }}
               >
-                <div className={`mb-2 flex items-center justify-center bg-gradient-to-br from-[#2a303c] to-[#161b22] rounded-xl border shadow-lg text-[#0affc2] font-['JetBrains_Mono'] font-bold ${
-                  isMobile ? 'w-16 h-16 text-2xl' : 'w-12 h-12 text-lg'
-                } ${
-                  isSelected ? 'border-[#0affc2]/60' : 'border-white/8'
+                <div className={`mb-1.5 flex items-center justify-center ${
+                  isMobile ? 'w-12 h-12' : 'w-10 h-10'
                 }`}>
-                  {app.icon}
+                  <IconComponent size={isMobile ? 36 : 30} />
                 </div>
-                <div className={`text-white text-center ${isMobile ? 'text-xs' : 'text-xs'}`} style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
+                <div
+                  className={`text-center leading-tight ${isMobile ? 'text-[11px]' : 'text-[11px]'} ${
+                    isSelected ? 'text-white' : 'text-white/80'
+                  }`}
+                  style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)', fontFamily: "'Inter', 'Segoe UI', sans-serif" }}
+                >
                   {app.title}
                 </div>
               </div>
@@ -473,165 +438,102 @@ const DesktopOS = () => {
         </div>
       </div>
 
+      {/* Widgets */}
+      {osSettings.showWidgets && (
+        <div className="transition-opacity duration-500 delay-500" style={{ opacity: desktopReady ? 1 : 0 }}>
+          <DesktopWidgets />
+        </div>
+      )}
+
+      {/* Snap Preview */}
+      <SnapPreview snapZone={dragSnapPreview} taskbarHeight={isMobile ? 56 : 48} />
+
       {/* Windows */}
       {Object.keys(windows).map((appId) => {
         const win = windows[appId];
         const Component = win.component;
+        const IconComponent = win.icon;
         const isMinimized = minimizedWindows.has(appId);
         const isMaximized = maximizedWindows.has(appId);
-
-        if (isMinimized) return null;
+        const snapZone = snappedWindows[appId] || null;
 
         return (
           <Window
             key={appId}
             id={appId}
             title={win.title}
+            icon={IconComponent}
             width={win.width}
             height={win.height}
             x={win.x}
             y={win.y}
             isActive={activeWindow === appId}
+            isMinimized={isMinimized}
             isMaximized={isMaximized}
+            snapZone={snapZone}
             onFocus={() => focusWindow(appId)}
             onClose={() => closeWindow(appId)}
             onMinimize={() => minimizeWindow(appId)}
             onMaximize={() => maximizeWindow(appId)}
+            onSnap={(zone) => snapWindow(appId, zone)}
             zIndex={win.zIndex}
           >
-            <Component onOpenWindow={openWindow} />
+            <Component
+              onOpenWindow={openWindow}
+              {...(appId === 'settings' ? { settings: osSettings, onSettingsChange: setOsSettings } : {})}
+            />
           </Window>
         );
       })}
 
+      {/* Start Menu */}
+      {showStartMenu && (
+        <StartMenu
+          apps={apps}
+          onOpenApp={openWindow}
+          onShutdown={handleShutdown}
+          onClose={() => setShowStartMenu(false)}
+        />
+      )}
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={contextMenuItems}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
+
+      {/* Notification Center */}
+      <NotificationCenter
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        time={time}
+      />
+
       {/* Taskbar */}
-      <div className={`absolute bottom-0 left-0 right-0 bg-[#0f0f14]/85 backdrop-blur-xl border-t border-white/8 flex items-center justify-between z-[9000] ${
-        isMobile ? 'h-16 px-2' : 'h-12 px-4'
-      }`}>
-        {/* Start Button */}
-        <div className="relative">
-          <div
-            className={`start-btn flex items-center rounded-md cursor-pointer transition-all ${
-              showStartMenu ? 'bg-white/15' : 'bg-white/5 hover:bg-white/10'
-            } ${isMobile ? 'gap-1 px-2 py-2' : 'gap-2 px-3 py-1.5'}`}
-            onClick={() => setShowStartMenu(!showStartMenu)}
-          >
-            <div className={`bg-[#0affc2] rounded-sm ${isMobile ? 'w-6 h-6' : 'w-4 h-4'}`} />
-            {!isMobile && <span className="text-[#e0e0e0] font-semibold text-xs font-['Inter']">ASoft</span>}
-          </div>
-
-          {/* Start Menu */}
-          {showStartMenu && (
-            <div className={`start-menu absolute bottom-full left-0 mb-2 bg-[#1a1a1f]/95 backdrop-blur-xl border border-white/10 rounded-lg overflow-hidden ${
-              isMobile ? 'w-72' : 'w-64'
-            }`}
-            style={{
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)'
-            }}>
-              {/* User Info */}
-              <div className={`border-b border-white/10 bg-white/5 ${isMobile ? 'p-4' : 'p-4'}`}>
-                <div className="flex items-center gap-3">
-                  {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-[#0affc2]/10 border border-[#0affc2]/30 flex items-center justify-center">
-                    <span className="text-sm font-bold font-['JetBrains_Mono'] text-[#0affc2]">
-                      AS
-                    </span>
-                  </div>
-
-                  {/* User details */}
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold text-white">
-                      Acker Saldaña
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Full Stack Developer
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Menu Items */}
-              <div className="p-2">
-                {Object.keys(apps).map((appId) => {
-                  const app = apps[appId];
-                  return (
-                    <button
-                      key={appId}
-                      onClick={() => {
-                        openWindow(appId);
-                        setShowStartMenu(false);
-                      }}
-                      className="group w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-white/10 transition-colors text-left"
-                    >
-                      {/* Icon */}
-                      <div className="w-8 h-8 flex items-center justify-center bg-[#2a303c] rounded border border-white/10">
-                        <span className="text-sm font-['JetBrains_Mono'] font-bold text-[#0affc2]">
-                          {app.icon}
-                        </span>
-                      </div>
-
-                      {/* Title */}
-                      <span className="text-sm text-gray-400 group-hover:text-white transition-colors">
-                        {app.title}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Separator */}
-              <div className="border-t border-white/10 my-2" />
-
-              {/* System Options */}
-              <div className="p-2">
-                <button
-                  onClick={handleShutdown}
-                  className="group w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-red-500/20 transition-colors text-left text-gray-400 hover:text-red-400"
-                >
-                  {/* Icon */}
-                  <div className="w-8 h-8 flex items-center justify-center">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                  </div>
-
-                  {/* Title */}
-                  <span className="text-sm">Shutdown</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Task List */}
-        <div className={`flex gap-1 flex-1 overflow-x-auto scrollbar-hide ${isMobile ? 'ml-2' : 'ml-4'}`}>
-          {Object.keys(windows).map((appId) => {
-            const win = windows[appId];
-            const isMinimized = minimizedWindows.has(appId);
-
-            return (
-              <button
-                key={appId}
-                onClick={() => (isMinimized ? openWindow(appId) : focusWindow(appId))}
-                className={`rounded transition-all border-b-2 flex-shrink-0 ${
-                  isMobile ? 'px-2 py-1.5 text-[10px]' : 'px-4 py-2 text-xs'
-                } ${
-                  activeWindow === appId && !isMinimized
-                    ? 'bg-white/8 text-white border-[#0affc2]'
-                    : 'bg-transparent text-gray-500 border-transparent hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                {isMobile ? win.icon : win.title}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Clock */}
-        <div className={`text-gray-500 font-['JetBrains_Mono'] flex-shrink-0 ${isMobile ? 'text-[10px] ml-1' : 'text-xs'}`}>
-          {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </div>
-      </div>
+      <Taskbar
+        apps={apps}
+        windows={windows}
+        activeWindow={activeWindow}
+        minimizedWindows={minimizedWindows}
+        onOpenWindow={openWindow}
+        onFocusWindow={focusWindow}
+        onToggleStartMenu={() => {
+          setShowStartMenu(prev => !prev);
+          setShowNotifications(false);
+        }}
+        showStartMenu={showStartMenu}
+        time={time}
+        onToggleNotifications={() => {
+          setShowNotifications(prev => !prev);
+          setShowStartMenu(false);
+        }}
+        onToggleSearch={() => setShowStartMenu(true)}
+        isMobile={isMobile}
+      />
     </div>
   );
 };

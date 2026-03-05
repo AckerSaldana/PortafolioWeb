@@ -5,7 +5,13 @@
       "Bash(findstr:*)",
       "Bash(nul)",
       "Bash(git add:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm run build)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint -- --format compact)",
+      "Bash(npx eslint src/components/DesktopOS.jsx src/components/Window.jsx src/components/os/*.jsx src/components/OSCursor.jsx src/hooks/useKeyboardShortcuts.js src/utils/win11Theme.js)",
+      "Bash(npx eslint src/components/DesktopOS.jsx src/components/Window.jsx src/components/os/*.jsx --quiet)",
+      "Bash(npx eslint src/components/SettingsWindow.jsx src/components/DesktopOS.jsx)"
     ],
     "deny": [],
     "ask": []
