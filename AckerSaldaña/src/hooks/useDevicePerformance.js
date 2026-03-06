@@ -87,7 +87,7 @@ const useDevicePerformance = () => {
     // Stop monitoring after 10 seconds to save CPU
     let animationId;
     const monitoringStartTime = Date.now();
-    const MONITORING_DURATION = 10000; // 10 seconds
+    const MONITORING_DURATION = 5000; // 5 seconds
 
     if (typeof window !== 'undefined' && window.performance && window.performance.now) {
       let frameCount = 0;

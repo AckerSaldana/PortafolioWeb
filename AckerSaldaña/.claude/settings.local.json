@@ -18,7 +18,8 @@
       "Bash(npx eslint src/components/AboutMeGSAP.jsx src/components/HeroGSAP.jsx src/components/Navbar.jsx src/components/ContactGSAP.jsx src/components/ProjectCardGSAP.jsx src/components/HorizontalProjectsGSAP.jsx src/pages/Projects.jsx)",
       "Bash(grep -n \"scrollTrigger\" /Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/src/components/*.jsx)",
       "Bash(grep -n \"scrollTrigger\\\\|ScrollTrigger.create\" /Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/src/components/*.jsx /Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/src/pages/*.jsx)",
-      "Bash(grep -n \"scrub:\" /Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/src/components/*.jsx)"
+      "Bash(grep -n \"scrub:\" /Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/src/components/*.jsx)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []

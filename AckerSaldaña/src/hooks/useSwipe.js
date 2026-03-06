@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 /**
  * useSwipe hook for detecting swipe gestures on touch devices
@@ -29,6 +29,16 @@ export default function useSwipe(options = {}) {
   const touchStartRef = useRef(null);
   const touchMoveRef = useRef(null);
   const touchStartTimeRef = useRef(null);
+
+  // Store callbacks in refs to avoid re-registering listeners on every render
+  const onSwipeLeftRef = useRef(onSwipeLeft);
+  const onSwipeRightRef = useRef(onSwipeRight);
+  const onSwipeUpRef = useRef(onSwipeUp);
+  const onSwipeDownRef = useRef(onSwipeDown);
+  onSwipeLeftRef.current = onSwipeLeft;
+  onSwipeRightRef.current = onSwipeRight;
+  onSwipeUpRef.current = onSwipeUp;
+  onSwipeDownRef.current = onSwipeDown;
 
   const [swipeDirection, setSwipeDirection] = useState(null); // 'left' | 'right' | 'up' | 'down' | null
   const [swipeProgress, setSwipeProgress] = useState(0); // 0-1 value representing swipe progress
@@ -102,30 +112,18 @@ export default function useSwipe(options = {}) {
         // Horizontal swipe
         if (absX >= minSwipeDistance && velocity >= minSwipeVelocity) {
           if (deltaX > 0) {
-            // Swipe right
-            if (onSwipeRight) {
-              onSwipeRight({ distance: absX, velocity, duration: touchDuration });
-            }
+            onSwipeRightRef.current?.({ distance: absX, velocity, duration: touchDuration });
           } else {
-            // Swipe left
-            if (onSwipeLeft) {
-              onSwipeLeft({ distance: absX, velocity, duration: touchDuration });
-            }
+            onSwipeLeftRef.current?.({ distance: absX, velocity, duration: touchDuration });
           }
         }
       } else {
         // Vertical swipe
         if (absY >= minSwipeDistance && velocity >= minSwipeVelocity) {
           if (deltaY > 0) {
-            // Swipe down
-            if (onSwipeDown) {
-              onSwipeDown({ distance: absY, velocity, duration: touchDuration });
-            }
+            onSwipeDownRef.current?.({ distance: absY, velocity, duration: touchDuration });
           } else {
-            // Swipe up
-            if (onSwipeUp) {
-              onSwipeUp({ distance: absY, velocity, duration: touchDuration });
-            }
+            onSwipeUpRef.current?.({ distance: absY, velocity, duration: touchDuration });
           }
         }
       }
@@ -165,15 +163,7 @@ export default function useSwipe(options = {}) {
       element.removeEventListener('touchend', handleTouchEnd);
       element.removeEventListener('touchcancel', handleTouchCancel);
     };
-  }, [
-    minSwipeDistance,
-    minSwipeVelocity,
-    onSwipeLeft,
-    onSwipeRight,
-    onSwipeUp,
-    onSwipeDown,
-    preventDefaultTouchmoveEvent
-  ]);
+  }, [minSwipeDistance, minSwipeVelocity, preventDefaultTouchmoveEvent]);
 
   return {
     ref: elementRef,

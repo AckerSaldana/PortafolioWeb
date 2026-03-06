@@ -25,8 +25,9 @@ function Stars({ particleCount = 3000 }) {
   // Store press state inside component
   const isPressed = useRef(false);
 
-  // Reusable color object to avoid creating new instances every frame
-  const colorRef = useRef(new THREE.Color());
+  // Smooth color lerp refs to avoid snapping when isScrolling toggles
+  const smoothColorRef = useRef(new THREE.Color('#4a9eff'));
+  const targetColorRef = useRef(new THREE.Color('#4a9eff'));
 
   // Frame counter for throttling color updates on mobile
   const frameCountRef = useRef(0);
@@ -72,7 +73,6 @@ function Stars({ particleCount = 3000 }) {
     // Read scroll data from shared context
     const scrollSpeed = scrollData ? scrollData.current.speed : 0;
     const scrollProgress = scrollData ? scrollData.current.progress : 0;
-    const isScrolling = scrollData ? scrollData.current.isScrolling : false;
 
     frameCountRef.current++;
 
@@ -95,15 +95,16 @@ function Stars({ particleCount = 3000 }) {
     meshRef.current.rotation.y = animationState.current.rotationY;
     meshRef.current.rotation.z = animationState.current.rotationZ;
 
-    // Skip color updates during scroll — imperceptible while content moves
-    if (!isScrolling) {
-      const shouldUpdateColor = !isMobile || frameCountRef.current % 3 === 0;
-      if (shouldUpdateColor) {
-        const hue = 200 + scrollProgress * 40;
-        colorRef.current.setHSL(hue / 360, 1, 0.65);
-        if (meshRef.current.material && meshRef.current.material.color) {
-          meshRef.current.material.color.copy(colorRef.current);
-        }
+    // Smooth color transition — always compute target, lerp to avoid snapping
+    const shouldUpdateColor = !isMobile || frameCountRef.current % 3 === 0;
+    if (shouldUpdateColor) {
+      const hue = 200 + scrollProgress * 40;
+      targetColorRef.current.setHSL(hue / 360, 1, 0.65);
+      const COLOR_DECAY = 0.005;
+      const colorLerp = 1 - Math.pow(COLOR_DECAY, delta);
+      smoothColorRef.current.lerp(targetColorRef.current, colorLerp);
+      if (meshRef.current.material && meshRef.current.material.color) {
+        meshRef.current.material.color.copy(smoothColorRef.current);
       }
     }
 
@@ -266,12 +267,20 @@ function GLTFPlanet({ modelPath, position, scale = 1, orbitRadius, orbitSpeed, i
   const groupRef = useRef();
   const planetRef = useRef();
   const orbitAngle = useRef(initialAngle);
+  const smoothParallaxY = useRef(0);
   const scrollProgress = useContext(ScrollProgressContext);
+
+  // Initialize parallax to correct value on mount (avoids slide-in on mid-page load)
+  useEffect(() => {
+    if (!scrollProgress) return;
+    const depth = Math.abs(position[2]);
+    const parallaxStrength = depth * 0.2;
+    const progress = scrollProgress.current.progress;
+    smoothParallaxY.current = (progress - 0.5) * parallaxStrength;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useFrame((state, delta) => {
     if (!groupRef.current) return;
-
-    const isScrolling = scrollProgress ? scrollProgress.current.isScrolling : false;
 
     // Orbit animation - smooth elliptical orbit
     orbitAngle.current += delta * orbitSpeed;
@@ -280,19 +289,22 @@ function GLTFPlanet({ modelPath, position, scale = 1, orbitRadius, orbitSpeed, i
     const ellipseX = orbitRadius;
     const ellipseZ = orbitRadius * 0.8; // Slightly elliptical
 
-    // Skip parallax calculation during scroll — imperceptible while content moves
-    let parallaxY = 0;
-    if (!isScrolling) {
-      const depth = Math.abs(position[2]);
-      const parallaxStrength = depth * 0.2;
-      const progress = scrollProgress ? scrollProgress.current.progress : 0;
-      parallaxY = (progress - 0.5) * parallaxStrength;
-    }
+    // Always compute target parallaxY — no binary isScrolling gate.
+    // Delta-based lerp prevents discontinuous jumps when scroll state toggles.
+    const depth = Math.abs(position[2]);
+    const parallaxStrength = depth * 0.2;
+    const progress = scrollProgress ? scrollProgress.current.progress : 0;
+    const targetParallaxY = (progress - 0.5) * parallaxStrength;
+
+    // Frame-rate-independent lerp: converges in ~350ms at any framerate
+    const DECAY = 0.001;
+    const lerpFactor = 1 - Math.pow(DECAY, delta);
+    smoothParallaxY.current += (targetParallaxY - smoothParallaxY.current) * lerpFactor;
 
     groupRef.current.position.x = position[0] + Math.cos(orbitAngle.current) * ellipseX;
     groupRef.current.position.z = position[2] + Math.sin(orbitAngle.current) * ellipseZ;
     groupRef.current.position.y =
-      position[1] + Math.sin(orbitAngle.current * 2) * 0.05 + parallaxY;
+      position[1] + Math.sin(orbitAngle.current * 2) * 0.05 + smoothParallaxY.current;
 
     // Planet rotation on its own axis
     if (planetRef.current) {
@@ -480,7 +492,11 @@ function Comet({ delay = 3000 }) {
     if (cometData.current.currentZ > 5 || Math.abs(cometData.current.currentX) > 15) {
       setIsActive(false);
       setShowTrail(false);
-      
+
+      // Clear all existing timers before creating new ones to prevent accumulation
+      timersRef.current.forEach(t => clearTimeout(t));
+      timersRef.current = [];
+
       // Reset after timer
       const resetTimer = setTimeout(() => {
         initializeComet();

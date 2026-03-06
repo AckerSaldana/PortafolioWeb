@@ -1,13 +1,9 @@
 import { useState, lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import HeroGSAP from './components/HeroGSAP'
-import AboutMeGSAP from './components/AboutMeGSAP'
 import TargetCursor from './components/TargetCursor'
-import SkillsGSAP from './components/SkillsGSAP'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
-import ExperienceGSAP from './components/ExperienceGSAP'
-import ContactGSAP from './components/ContactGSAP'
 import { TransitionProvider } from './context/TransitionContext'
 import { motion } from 'framer-motion'
 import SmoothScroll from './components/SmoothScroll'
@@ -15,11 +11,15 @@ import Preloader from './components/Preloader'
 import ScrollProgress from './components/ScrollProgress'
 import { useResponsiveScaler } from './hooks/useResponsiveScaler'
 
-// Lazy load heavy components — Three.js canvas and TV section are large dependency trees
+// Lazy load heavy components and below-fold sections
 const ParticleBackground = lazy(() => import('./components/ParticleBackground'))
 const TVSectionGSAP = lazy(() => import('./components/TVSectionGSAP'))
 const ProjectsGSAP = lazy(() => import('./pages/ProjectsGSAP'))
 const CursorDebug = lazy(() => import('./components/CursorDebug'))
+const AboutMeGSAP = lazy(() => import('./components/AboutMeGSAP'))
+const SkillsGSAP = lazy(() => import('./components/SkillsGSAP'))
+const ExperienceGSAP = lazy(() => import('./components/ExperienceGSAP'))
+const ContactGSAP = lazy(() => import('./components/ContactGSAP'))
 
 function HomePage() {
   const { wrapperRef } = useResponsiveScaler({
@@ -57,10 +57,14 @@ function HomePage() {
           <HeroGSAP />
         </div>
 
-        <AboutMeGSAP />
+        <Suspense fallback={null}>
+          <AboutMeGSAP />
+        </Suspense>
 
         <div id="skills">
-          <SkillsGSAP />
+          <Suspense fallback={null}>
+            <SkillsGSAP />
+          </Suspense>
         </div>
 
         <div id="projects">
@@ -70,12 +74,16 @@ function HomePage() {
         </div>
 
         <div id="experience">
-          <ExperienceGSAP />
+          <Suspense fallback={null}>
+            <ExperienceGSAP />
+          </Suspense>
         </div>
       </div>
 
       {/* Contact and Footer outside scaled wrapper for full-width display */}
-      <ContactGSAP />
+      <Suspense fallback={null}>
+        <ContactGSAP />
+      </Suspense>
       <Footer />
     </div>
   )

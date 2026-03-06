@@ -17,6 +17,7 @@ const TaskbarButton = ({ icon, onClick, isActive, isOpen, tooltip, className = '
     <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <button
         onClick={onClick}
+        aria-label={tooltip || 'Taskbar button'}
         className={`relative flex items-center justify-center w-10 h-10 rounded-md transition-all duration-150 ${
           isActive
             ? 'bg-white/10'
@@ -91,13 +92,15 @@ const Taskbar = ({
       {/* Centered content */}
       <div className="flex-1 flex items-center justify-center gap-0.5">
         {/* Start button */}
-        <TaskbarButton
-          icon={<Win11Logo size={18} />}
-          onClick={onToggleStartMenu}
-          isActive={showStartMenu}
-          tooltip="Start"
-          className="start-btn"
-        />
+        <div role="menubar">
+          <TaskbarButton
+            icon={<Win11Logo size={18} />}
+            onClick={onToggleStartMenu}
+            isActive={showStartMenu}
+            tooltip="Start"
+            className="start-btn"
+          />
+        </div>
 
         {/* Search */}
         {!isMobile && (

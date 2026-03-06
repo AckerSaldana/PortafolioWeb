@@ -51,21 +51,27 @@ export default function SmoothScroll({ children }) {
 
       lenisRef.current.on('scroll', ScrollTrigger.update);
 
-      gsap.ticker.add((time) => {
+      const tickerCallback = (time) => {
         lenisRef.current?.raf(time * 1000);
-      });
+      };
+      gsap.ticker.add(tickerCallback);
 
       gsap.ticker.lagSmoothing(0);
+
+      // Store callback reference for cleanup
+      lenisRef._tickerCallback = tickerCallback;
     } catch (error) {
       console.error('Lenis initialization error:', error);
     }
 
     // Cleanup function
     return () => {
+      if (lenisRef._tickerCallback) {
+        gsap.ticker.remove(lenisRef._tickerCallback);
+      }
       if (lenisRef.current) {
         lenisRef.current.destroy();
       }
-      gsap.ticker.remove();
     };
   }, []);
 

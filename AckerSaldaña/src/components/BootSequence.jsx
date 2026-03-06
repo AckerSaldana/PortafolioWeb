@@ -6,6 +6,7 @@ const BootSequence = ({ onComplete }) => {
   const [progress, setProgress] = useState(0);
   const containerRef = useRef(null);
   const progressBarRef = useRef(null);
+  const mountedRef = useRef(true);
 
   const bootMessages = [
     { text: 'PORTFOLIO SYSTEM BOOT v2.0.1', delay: 0 },
@@ -26,11 +27,14 @@ const BootSequence = ({ onComplete }) => {
   ];
 
   useEffect(() => {
+    mountedRef.current = true;
+    const timeoutIds = [];
+
     // Add boot messages sequentially
-    bootMessages.forEach((msg, index) => {
-      setTimeout(() => {
-        setBootLines((prev) => [...prev, msg]);
-      }, msg.delay);
+    bootMessages.forEach((msg) => {
+      timeoutIds.push(setTimeout(() => {
+        if (mountedRef.current) setBootLines((prev) => [...prev, msg]);
+      }, msg.delay));
     });
 
     // Progress bar animation
@@ -40,14 +44,14 @@ const BootSequence = ({ onComplete }) => {
       {
         duration: 2.8,
         onUpdate: function () {
-          setProgress(Math.floor(this.progress() * 100));
+          if (mountedRef.current) setProgress(Math.floor(this.progress() * 100));
         },
       }
     );
 
     // Flash effect before completion
-    setTimeout(() => {
-      if (containerRef.current) {
+    timeoutIds.push(setTimeout(() => {
+      if (containerRef.current && mountedRef.current) {
         gsap.to(containerRef.current, {
           opacity: 0,
           duration: 0.3,
@@ -57,10 +61,12 @@ const BootSequence = ({ onComplete }) => {
           },
         });
       }
-    }, 3000);
+    }, 3000));
 
     return () => {
+      mountedRef.current = false;
       progressTl.kill();
+      timeoutIds.forEach(clearTimeout);
     };
   }, []);
 

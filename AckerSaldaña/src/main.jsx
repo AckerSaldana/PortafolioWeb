@@ -4,9 +4,8 @@ import './index.css'
 import './utils/gsapConfig'
 import App from './App.jsx'
 
-// TEMPORARILY DISABLED STRICT MODE FOR DEBUGGING GSAP ISSUES
 createRoot(document.getElementById('root')).render(
-  // <StrictMode>
+  <StrictMode>
     <App />
-  // </StrictMode>,
+  </StrictMode>,
 )

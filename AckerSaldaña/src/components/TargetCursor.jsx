@@ -101,11 +101,22 @@ const TargetCursor = ({
     window.addEventListener("mousemove", moveHandler);
 
     let scrollRafId = null;
+    let scrollFrameCount = 0;
     const scrollHandler = () => {
       if (!activeTarget || !cursorRef.current || scrollRafId) return;
       scrollRafId = requestAnimationFrame(() => {
-        scrollRafId = null;
-        if (!activeTarget || !cursorRef.current) return;
+        const currentRafId = scrollRafId;
+        if (!activeTarget || !cursorRef.current) {
+          scrollRafId = null;
+          return;
+        }
+
+        // Throttle expensive elementFromPoint to every 3rd frame
+        scrollFrameCount++;
+        if (scrollFrameCount % 3 !== 0) {
+          scrollRafId = null;
+          return;
+        }
 
         const mouseX = gsap.getProperty(cursorRef.current, "x");
         const mouseY = gsap.getProperty(cursorRef.current, "y");
@@ -121,6 +132,7 @@ const TargetCursor = ({
             currentLeaveHandler();
           }
         }
+        scrollRafId = null;
       });
     };
 

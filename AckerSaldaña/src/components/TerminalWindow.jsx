@@ -106,6 +106,9 @@ const TerminalWindow = ({ onOpenWindow }) => {
       className="h-full p-4 overflow-y-auto text-sm text-[#e0e0e0] cursor-text"
       onClick={() => inputRef.current?.focus()}
       ref={outputRef}
+      tabIndex={0}
+      role="log"
+      aria-label="Terminal output"
       style={{ overscrollBehavior: 'contain' }}
     >
       {output.map((line, i) => (
@@ -122,7 +125,8 @@ const TerminalWindow = ({ onOpenWindow }) => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-1 bg-transparent border-none outline-none text-white font-['JetBrains_Mono']"
+          className="flex-1 bg-transparent border-none outline-none text-white font-['JetBrains_Mono'] focus:ring-1 focus:ring-[#0affc2]/30"
+          aria-label="Terminal input"
           autoComplete="off"
           spellCheck="false"
         />

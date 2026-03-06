@@ -45,41 +45,49 @@ const HeroGSAP = () => {
 
   // Floating elements parallax removed per user request
 
-  // Magnetic button effect
+  // Magnetic button effect — throttled with RAF
   useEffect(() => {
+    let magneticRafId = null;
     const handleMouseMove = (e) => {
-      magneticRefs.current.forEach((button) => {
-        if (!button) return;
+      if (magneticRafId) return;
+      magneticRafId = requestAnimationFrame(() => {
+        magneticRefs.current.forEach((button) => {
+          if (!button) return;
 
-        const rect = button.getBoundingClientRect();
-        const buttonCenterX = rect.left + rect.width / 2;
-        const buttonCenterY = rect.top + rect.height / 2;
-        const distX = e.clientX - buttonCenterX;
-        const distY = e.clientY - buttonCenterY;
-        const distance = Math.sqrt(distX * distX + distY * distY);
-        const threshold = 100;
+          const rect = button.getBoundingClientRect();
+          const buttonCenterX = rect.left + rect.width / 2;
+          const buttonCenterY = rect.top + rect.height / 2;
+          const distX = e.clientX - buttonCenterX;
+          const distY = e.clientY - buttonCenterY;
+          const distance = Math.sqrt(distX * distX + distY * distY);
+          const threshold = 100;
 
-        if (distance < threshold) {
-          const pull = 0.4;
-          gsap.to(button, {
-            x: distX * pull,
-            y: distY * pull,
-            duration: 0.3,
-            ease: 'power2.out',
-          });
-        } else {
-          gsap.to(button, {
-            x: 0,
-            y: 0,
-            duration: 0.5,
-            ease: 'elastic.out(1, 0.3)',
-          });
-        }
+          if (distance < threshold) {
+            const pull = 0.4;
+            gsap.to(button, {
+              x: distX * pull,
+              y: distY * pull,
+              duration: 0.3,
+              ease: 'power2.out',
+            });
+          } else {
+            gsap.to(button, {
+              x: 0,
+              y: 0,
+              duration: 0.5,
+              ease: 'elastic.out(1, 0.3)',
+            });
+          }
+        });
+        magneticRafId = null;
       });
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (magneticRafId) cancelAnimationFrame(magneticRafId);
+    };
   }, []);
 
   // Scroll arrow visibility — no React state, animate directly
@@ -115,6 +123,7 @@ const HeroGSAP = () => {
     // MOBILE OPTIMIZATION: Use pure CSS transitions (best performance, no blur)
     // Avoid JavaScript animations on mobile - they can cause text rendering issues
     if (useSimpleAnimations) {
+      const timeoutIds = [];
 
       // CRITICAL: Clear any GSAP-set styles that might have been applied
       if (nameRef.current) gsap.set(nameRef.current, { clearProps: 'all' });
@@ -130,30 +139,30 @@ const HeroGSAP = () => {
 
       // Use CSS classes for animations - no JavaScript manipulation
       // This ensures crisp text rendering without any blur
-      setTimeout(() => {
+      timeoutIds.push(setTimeout(() => {
         if (nameRef.current) nameRef.current.classList.add('hero-mobile-visible');
-        setTimeout(() => {
+        timeoutIds.push(setTimeout(() => {
           if (greetingRef.current) greetingRef.current.classList.add('hero-mobile-visible');
-        }, 400);
-        setTimeout(() => {
+        }, 400));
+        timeoutIds.push(setTimeout(() => {
           if (roleRef.current) roleRef.current.classList.add('hero-mobile-visible');
-        }, 600);
-        setTimeout(() => {
+        }, 600));
+        timeoutIds.push(setTimeout(() => {
           if (descriptionRef.current) descriptionRef.current.classList.add('hero-mobile-visible');
-        }, 800);
-        setTimeout(() => {
+        }, 800));
+        timeoutIds.push(setTimeout(() => {
           if (buttonsRef.current) {
             Array.from(buttonsRef.current.children).forEach((btn, i) => {
-              setTimeout(() => btn.classList.add('hero-mobile-visible'), i * 100);
+              timeoutIds.push(setTimeout(() => btn.classList.add('hero-mobile-visible'), i * 100));
             });
           }
-        }, 1000);
-        setTimeout(() => {
+        }, 1000));
+        timeoutIds.push(setTimeout(() => {
           if (arrowRef.current) arrowRef.current.classList.add('hero-mobile-visible');
-        }, 1400);
-      }, 100);
+        }, 1400));
+      }, 100));
 
-      return;
+      return () => timeoutIds.forEach(clearTimeout);
     }
 
     const isLowPerformance = performance === 'low';
@@ -247,7 +256,7 @@ const HeroGSAP = () => {
     }, '-=0.4');
 
     // Arrow bounce animation
-    gsap.to(arrowRef.current, {
+    const arrowBounce = gsap.to(arrowRef.current, {
       y: 15,
       duration: 1.5,
       repeat: -1,
@@ -258,6 +267,7 @@ const HeroGSAP = () => {
 
     return () => {
       tl.kill();
+      arrowBounce.kill();
     };
   }, [performance, useSimpleAnimations]);
 

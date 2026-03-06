@@ -39,6 +39,9 @@ export class ResponsiveScaler {
     this.resizeObserver = null;
     this.isInitialized = false;
 
+    // Store bound reference once to properly add/remove event listeners
+    this.boundResize = this.handleResize.bind(this);
+
     if (!this.wrapper) {
       console.warn('ResponsiveScaler: No wrapper element provided');
       return;
@@ -62,11 +65,11 @@ export class ResponsiveScaler {
     this.updateScale(false); // No animation on init
 
     // Listen to window resize
-    window.addEventListener('resize', this.handleResize.bind(this));
+    window.addEventListener('resize', this.boundResize);
 
     // Listen to orientation change (mobile/tablet)
     if (window.screen?.orientation) {
-      window.screen.orientation.addEventListener('change', this.handleResize.bind(this));
+      window.screen.orientation.addEventListener('change', this.boundResize);
     }
 
     // Watch for content size changes (lazy-loaded components, images, etc.)
@@ -195,24 +198,22 @@ export class ResponsiveScaler {
   adjustWrapperHeight(scale) {
     if (!this.wrapper) return;
 
-    // Get the natural content height (before any height constraints)
-    // We need to temporarily remove height constraints to get true content height
-    const originalHeight = this.wrapper.style.height;
-    this.wrapper.style.height = 'auto';
+    // Use RAF to batch read/write and avoid layout thrashing
+    requestAnimationFrame(() => {
+      if (!this.wrapper) return;
 
-    // Get the actual content height
-    const contentHeight = this.wrapper.scrollHeight;
+      // Temporarily remove height to measure natural content height
+      const originalHeight = this.wrapper.style.height;
+      this.wrapper.style.height = 'auto';
 
-    // Calculate the scaled height (visual height after transform)
-    const scaledHeight = contentHeight * scale;
+      // Read phase
+      const contentHeight = this.wrapper.scrollHeight;
+      const scaledHeight = contentHeight * scale;
 
-    // Set wrapper to the scaled height to eliminate empty space
-    this.wrapper.style.height = `${scaledHeight}px`;
-
-    // Store for reference
-    document.documentElement.style.setProperty('--scaled-height', `${scaledHeight}px`);
-
-    console.log(`[ResponsiveScaler] Scale: ${scale.toFixed(2)}, Content: ${contentHeight}px, Scaled: ${scaledHeight}px`);
+      // Write phase
+      this.wrapper.style.height = `${scaledHeight}px`;
+      document.documentElement.style.setProperty('--scaled-height', `${scaledHeight}px`);
+    });
   }
 
   /**
@@ -291,9 +292,9 @@ export class ResponsiveScaler {
    * Destroy the scaler and remove event listeners
    */
   destroy() {
-    window.removeEventListener('resize', this.handleResize.bind(this));
+    window.removeEventListener('resize', this.boundResize);
     if (window.screen?.orientation) {
-      window.screen.orientation.removeEventListener('change', this.handleResize.bind(this));
+      window.screen.orientation.removeEventListener('change', this.boundResize);
     }
 
     // Disconnect observers

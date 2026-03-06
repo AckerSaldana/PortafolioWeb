@@ -275,6 +275,8 @@ const Window = ({
   return (
     <div
       ref={windowRef}
+      role="dialog"
+      aria-label={title}
       className={`fixed flex flex-col ${isMaximized ? 'rounded-none' : 'rounded-lg'}`}
       style={{
         width: `${dimensions.width}px`,
@@ -316,6 +318,7 @@ const Window = ({
 
         <div className="window-controls flex h-full flex-shrink-0">
           <button onClick={onMinimize}
+            aria-label="Minimize window"
             className={`flex items-center justify-center hover:bg-white/8 transition-colors duration-100 ${isMobile ? 'w-12' : 'w-[46px]'} h-full`}
             title="Minimize">
             <svg width="10" height="10" viewBox="0 0 10 10">
@@ -325,6 +328,7 @@ const Window = ({
 
           <div className="relative" onMouseEnter={handleMaxBtnHover} onMouseLeave={handleMaxBtnLeave}>
             <button onClick={onMaximize}
+              aria-label={isMaximized ? "Restore window" : "Maximize window"}
               className={`flex items-center justify-center hover:bg-white/8 transition-colors duration-100 ${isMobile ? 'w-12' : 'w-[46px]'} h-full`}
               title={isMaximized ? "Restore Down" : "Maximize"}>
               {isMaximized ? (
@@ -393,6 +397,7 @@ const Window = ({
           </div>
 
           <button onClick={onClose}
+            aria-label="Close window"
             className={`flex items-center justify-center hover:bg-[#c42b1c] transition-colors duration-100 ${isMobile ? 'w-12' : 'w-[46px]'} h-full ${isMaximized ? '' : 'rounded-tr-lg'}`}
             title="Close">
             <svg width="10" height="10" viewBox="0 0 10 10">

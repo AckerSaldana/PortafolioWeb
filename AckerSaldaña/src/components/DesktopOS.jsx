@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import Window from './Window';
@@ -64,7 +64,7 @@ const DesktopOS = () => {
     return { x: 100 + (index * 50), y: 80 + (index * 40) };
   };
 
-  const apps = {
+  const apps = useMemo(() => ({
     terminal: {
       id: 'terminal', title: 'Terminal', icon: TerminalIcon,
       component: TerminalWindow,
@@ -114,7 +114,7 @@ const DesktopOS = () => {
       height: isMobile ? windowSize.height - 120 : 500,
       ...getResponsivePosition(6)
     }
-  };
+  }), [isMobile, isTablet, windowSize.width, windowSize.height]);
 
   // === Boot sequence ===
   useEffect(() => {

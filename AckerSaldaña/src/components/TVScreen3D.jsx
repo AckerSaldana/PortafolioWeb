@@ -66,7 +66,6 @@ const TVScreen3D = () => {
     };
 
     const animateScene = () => {
-      // Only animate if visible (iPhone performance optimization)
       if (isVisibleRef.current) {
         currentRotateY += (mouseX - currentRotateY) * lerpSpeed;
         currentRotateX += (mouseY - currentRotateX) * lerpSpeed;
@@ -159,6 +158,7 @@ const TVScreen3D = () => {
   };
 
   // Static noise effect
+  const noiseImageDataRef = useRef(null);
   const startNoise = () => {
     const canvas = noiseCanvasRef.current;
     if (!canvas) return;
@@ -166,10 +166,13 @@ const TVScreen3D = () => {
     canvas.width = 320;
     canvas.height = 240;
 
+    // Reuse ImageData to avoid per-frame allocation
+    if (!noiseImageDataRef.current || noiseImageDataRef.current.width !== canvas.width) {
+      noiseImageDataRef.current = ctx.createImageData(canvas.width, canvas.height);
+    }
+
     const loop = () => {
-      const w = canvas.width;
-      const h = canvas.height;
-      const idata = ctx.createImageData(w, h);
+      const idata = noiseImageDataRef.current;
       const buf = new Uint32Array(idata.data.buffer);
       for (let i = 0; i < buf.length; i++) {
         buf[i] = Math.random() < 0.1 ? 0xffffffff : 0xff000000;
