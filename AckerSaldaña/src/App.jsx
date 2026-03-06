@@ -72,11 +72,10 @@ function HomePage() {
         <div id="experience">
           <ExperienceGSAP />
         </div>
-
-        <ContactGSAP />
       </div>
 
-      {/* Footer outside scaled wrapper for full-width display */}
+      {/* Contact and Footer outside scaled wrapper for full-width display */}
+      <ContactGSAP />
       <Footer />
     </div>
   )

@@ -70,9 +70,9 @@ export class ResponsiveScaler {
     }
 
     // Watch for content size changes (lazy-loaded components, images, etc.)
-    // Recalculates wrapper height when content inside changes
+    // ResizeObserver on wrapper catches external size changes
     this.resizeObserver = new ResizeObserver(() => {
-      if (this.currentScale !== 1) {
+      if (window.innerWidth >= this.mobileBreakpoint) {
         clearTimeout(this.heightAdjustTimeout);
         this.heightAdjustTimeout = setTimeout(() => {
           this.adjustWrapperHeight(this.currentScale);
@@ -80,6 +80,34 @@ export class ResponsiveScaler {
       }
     });
     this.resizeObserver.observe(this.wrapper);
+
+    // MutationObserver catches lazy-loaded components and DOM changes
+    // that don't trigger ResizeObserver (wrapper has fixed height)
+    this.mutationObserver = new MutationObserver(() => {
+      if (window.innerWidth >= this.mobileBreakpoint) {
+        clearTimeout(this.heightAdjustTimeout);
+        this.heightAdjustTimeout = setTimeout(() => {
+          this.adjustWrapperHeight(this.currentScale);
+          this.refreshScrollTrigger();
+          this.refreshLenis();
+        }, 150);
+      }
+    });
+    this.mutationObserver.observe(this.wrapper, {
+      childList: true,
+      subtree: true,
+    });
+
+    // Fallback recalculations for async content (images, fonts, etc.)
+    this.initTimers = [500, 1500, 3000].map(delay =>
+      setTimeout(() => {
+        if (window.innerWidth >= this.mobileBreakpoint) {
+          this.adjustWrapperHeight(this.currentScale);
+          this.refreshScrollTrigger();
+          this.refreshLenis();
+        }
+      }, delay)
+    );
 
     this.isInitialized = true;
   }
@@ -268,10 +296,18 @@ export class ResponsiveScaler {
       window.screen.orientation.removeEventListener('change', this.handleResize.bind(this));
     }
 
-    // Disconnect ResizeObserver
+    // Disconnect observers
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
       this.resizeObserver = null;
+    }
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+      this.mutationObserver = null;
+    }
+    if (this.initTimers) {
+      this.initTimers.forEach(clearTimeout);
+      this.initTimers = null;
     }
     clearTimeout(this.heightAdjustTimeout);
 
