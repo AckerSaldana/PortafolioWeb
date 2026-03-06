@@ -530,14 +530,7 @@ const HeroGSAP = () => {
           }}
         >
           <span className="block">Acker</span>
-          <span className="block" style={{
-            background: 'linear-gradient(90deg, #ffffff 0%, #4a9eff 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          }}>
-            Saldaña
-          </span>
+          <span className="block">Saldaña</span>
         </h1>
 
         {/* Role (rotating) with enhanced glitch effect */}

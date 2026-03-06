@@ -7,9 +7,10 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import useBreakpoint from '../hooks/useBreakpoint';
 import useDevicePerformance from '../hooks/useDevicePerformance';
+import { NebulaSystem } from './NebulaCloud';
 
 // Shared scroll context to avoid duplicate ScrollTrigger instances
-const ScrollProgressContext = createContext(null);
+export const ScrollProgressContext = createContext(null);
 
 // Cached color constants to avoid per-render allocations
 const TRAIL_COLOR = new THREE.Color('#ffffff');
@@ -631,6 +632,12 @@ const ParticleBackground = () => {
     return 4;
   }, [isMobile, performance]);
 
+  const nebulaCount = useMemo(() => {
+    if (isMobile || performance === 'low') return 0;
+    if (performance === 'medium') return 2;
+    return 4;
+  }, [isMobile, performance]);
+
   return (
     <div className="fixed inset-0 z-0 pointer-events-none" style={isSafari ? undefined : { transform: 'translateZ(0)' }}>
       <Canvas
@@ -652,6 +659,7 @@ const ParticleBackground = () => {
         <directionalLight position={[5, 5, 5]} intensity={0.8} />
 
         <SharedScrollProvider>
+        {nebulaCount > 0 && <NebulaSystem count={nebulaCount} />}
         <Stars particleCount={particleCount} />
 
         {cometCount >= 1 && <Comet delay={1000} />}
