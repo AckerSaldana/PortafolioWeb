@@ -100,23 +100,28 @@ const TargetCursor = ({
     const moveHandler = (e) => moveCursor(e.clientX, e.clientY);
     window.addEventListener("mousemove", moveHandler);
 
+    let scrollRafId = null;
     const scrollHandler = () => {
-      if (!activeTarget || !cursorRef.current) return;
-      
-      const mouseX = gsap.getProperty(cursorRef.current, "x");
-      const mouseY = gsap.getProperty(cursorRef.current, "y");
-      
-      const elementUnderMouse = document.elementFromPoint(mouseX, mouseY);
-      const isStillOverTarget = elementUnderMouse && (
-        elementUnderMouse === activeTarget || 
-        elementUnderMouse.closest(targetSelector) === activeTarget
-      );
-      
-      if (!isStillOverTarget) {
-        if (currentLeaveHandler) {
-          currentLeaveHandler();
+      if (!activeTarget || !cursorRef.current || scrollRafId) return;
+      scrollRafId = requestAnimationFrame(() => {
+        scrollRafId = null;
+        if (!activeTarget || !cursorRef.current) return;
+
+        const mouseX = gsap.getProperty(cursorRef.current, "x");
+        const mouseY = gsap.getProperty(cursorRef.current, "y");
+
+        const elementUnderMouse = document.elementFromPoint(mouseX, mouseY);
+        const isStillOverTarget = elementUnderMouse && (
+          elementUnderMouse === activeTarget ||
+          elementUnderMouse.closest(targetSelector) === activeTarget
+        );
+
+        if (!isStillOverTarget) {
+          if (currentLeaveHandler) {
+            currentLeaveHandler();
+          }
         }
-      }
+      });
     };
 
     window.addEventListener("scroll", scrollHandler, { passive: true });
@@ -324,6 +329,7 @@ const TargetCursor = ({
       window.removeEventListener("mouseup", mouseUpHandler);
       window.removeEventListener("mouseover", enterHandler);
       window.removeEventListener("scroll", scrollHandler);
+      if (scrollRafId) cancelAnimationFrame(scrollRafId);
 
       if (activeTarget) {
         cleanupTarget(activeTarget);

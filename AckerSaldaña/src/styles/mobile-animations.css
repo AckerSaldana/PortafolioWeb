@@ -263,6 +263,20 @@
   }
 }
 
+/* Safari desktop: same scroll-reveal animations without viewport restriction */
+body.safari-scroll-mode .mobile-animate-hidden {
+  opacity: 0 !important;
+  transform: translate3d(0, 30px, 0) !important;
+  will-change: transform, opacity;
+}
+
+body.safari-scroll-mode .mobile-animate-visible {
+  opacity: 1 !important;
+  transform: translate3d(0, 0, 0) !important;
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  will-change: auto;
+}
+
 /* ============================================
    REDUCED MOTION SUPPORT
    ============================================ */

@@ -35,6 +35,8 @@ export class ResponsiveScaler {
 
     this.currentScale = 1;
     this.resizeTimeout = null;
+    this.heightAdjustTimeout = null;
+    this.resizeObserver = null;
     this.isInitialized = false;
 
     if (!this.wrapper) {
@@ -66,6 +68,18 @@ export class ResponsiveScaler {
     if (window.screen?.orientation) {
       window.screen.orientation.addEventListener('change', this.handleResize.bind(this));
     }
+
+    // Watch for content size changes (lazy-loaded components, images, etc.)
+    // Recalculates wrapper height when content inside changes
+    this.resizeObserver = new ResizeObserver(() => {
+      if (this.currentScale !== 1) {
+        clearTimeout(this.heightAdjustTimeout);
+        this.heightAdjustTimeout = setTimeout(() => {
+          this.adjustWrapperHeight(this.currentScale);
+        }, 200);
+      }
+    });
+    this.resizeObserver.observe(this.wrapper);
 
     this.isInitialized = true;
   }
@@ -212,6 +226,9 @@ export class ResponsiveScaler {
    * Refresh GSAP ScrollTrigger after scaling
    */
   refreshScrollTrigger() {
+    // Skip on Safari — no ScrollTrigger instances to refresh (all replaced with CSS animations)
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (isSafari) return;
     if (ScrollTrigger) {
       ScrollTrigger.refresh();
     }
@@ -250,6 +267,13 @@ export class ResponsiveScaler {
     if (window.screen?.orientation) {
       window.screen.orientation.removeEventListener('change', this.handleResize.bind(this));
     }
+
+    // Disconnect ResizeObserver
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+    clearTimeout(this.heightAdjustTimeout);
 
     // Reset wrapper styles
     gsap.set(this.wrapper, {

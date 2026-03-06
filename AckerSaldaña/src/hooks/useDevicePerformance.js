@@ -15,9 +15,16 @@ const detectMobile = () => {
   return isIOS || isAndroid || isOtherMobile || isMacOSWithTouch;
 };
 
+// Detect Safari IMMEDIATELY (synchronously) — Safari needs different animation strategy
+const detectSafari = () => {
+  if (typeof navigator === 'undefined') return false;
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+};
+
 const useDevicePerformance = () => {
   // Initialize isMobile SYNCHRONOUSLY to prevent blur flash
   const [isMobile] = useState(() => detectMobile());
+  const [isSafari] = useState(() => detectSafari());
   const [performance, setPerformance] = useState('high');
   const [fps, setFps] = useState(60);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -168,7 +175,7 @@ const useDevicePerformance = () => {
     };
   }, []); // Empty dependency array - run once on mount
 
-  return { performance, fps, isMobile, prefersReducedMotion };
+  return { performance, fps, isMobile, isSafari, prefersReducedMotion };
 };
 
 export default useDevicePerformance;

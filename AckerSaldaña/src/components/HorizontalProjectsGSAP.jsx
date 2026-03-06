@@ -7,7 +7,8 @@ import useMobileScrollAnimation from '../hooks/useMobileScrollAnimation';
 import '../styles/horizontal-scroll.css';
 
 const HorizontalProjectsGSAP = () => {
-  const { performance, isMobile } = useDevicePerformance();
+  const { performance, isMobile, isSafari } = useDevicePerformance();
+  const useSimpleAnimations = isMobile || isSafari;
 
   // MOBILE OPTIMIZATION: Use IntersectionObserver instead of ScrollTrigger
   const { ref: mobileTitleRef, isVisible: titleVisible } = useMobileScrollAnimation({
@@ -26,17 +27,17 @@ const HorizontalProjectsGSAP = () => {
   useEffect(() => {
     if (!sectionRef.current || !containerRef.current) return;
 
-    // MOBILE: Use vertical scroll fallback (CSS only)
-    if (isMobile) {
-      console.log('[HorizontalProjects] Mobile detected - using vertical scroll');
+    // MOBILE + SAFARI: Use vertical scroll fallback (CSS only)
+    // Safari's native momentum scrolling conflicts with pin+scrub, causing scroll jams
+    if (isMobile || isSafari) {
       return;
     }
 
     const ctx = gsap.context(() => {
       const isLowPerformance = performance === 'low';
 
-      // Title animation
-      if (titleRef.current) {
+      // Title animation (skip on Safari - using CSS animations instead)
+      if (titleRef.current && !isSafari) {
         gsap.fromTo(
           titleRef.current,
           { opacity: 0, y: isLowPerformance ? 30 : 60 },
@@ -54,8 +55,8 @@ const HorizontalProjectsGSAP = () => {
         );
       }
 
-      // Subtitle
-      if (subtitleRef.current) {
+      // Subtitle (skip on Safari - using CSS animations instead)
+      if (subtitleRef.current && !isSafari) {
         gsap.fromTo(
           subtitleRef.current,
           { opacity: 0, y: 20 },
@@ -92,13 +93,8 @@ const HorizontalProjectsGSAP = () => {
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
-            // Update progress bar
             if (progressBarRef.current) {
-              gsap.to(progressBarRef.current, {
-                scaleX: self.progress,
-                duration: 0.1,
-                ease: 'none'
-              });
+              progressBarRef.current.style.transform = `scaleX(${self.progress})`;
             }
           }
         },
@@ -125,30 +121,32 @@ const HorizontalProjectsGSAP = () => {
           }
         );
 
-        // Parallax effect on images
-        const img = card.querySelector('.project-image');
-        if (img) {
-          gsap.fromTo(
-            img,
-            { x: -50 },
-            {
-              x: 50,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: card,
-                containerAnimation: scrollTween,
-                start: 'left right',
-                end: 'right left',
-                scrub: true,
-              },
-            }
-          );
+        // Parallax effect on images (skip on Safari - expensive)
+        if (!isSafari) {
+          const img = card.querySelector('.project-image');
+          if (img) {
+            gsap.fromTo(
+              img,
+              { x: -50 },
+              {
+                x: 50,
+                ease: 'none',
+                scrollTrigger: {
+                  trigger: card,
+                  containerAnimation: scrollTween,
+                  start: 'left right',
+                  end: 'right left',
+                  scrub: true,
+                },
+              }
+            );
+          }
         }
       });
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [projects.length, performance, isMobile]);
+  }, [projects.length, performance, isMobile, isSafari]);
 
   return (
     <section
@@ -156,23 +154,23 @@ const HorizontalProjectsGSAP = () => {
       id="projects"
       className="relative overflow-hidden"
       style={{
-        minHeight: isMobile ? 'auto' : '100vh',
-        paddingTop: isMobile ? '5rem' : '0',
-        paddingBottom: isMobile ? '5rem' : '0'
+        minHeight: useSimpleAnimations ? 'auto' : '100vh',
+        paddingTop: useSimpleAnimations ? '5rem' : '0',
+        paddingBottom: useSimpleAnimations ? '5rem' : '0'
       }}
     >
       {/* Title Section - Above horizontal scroll */}
       <div className="relative z-20 py-20 px-8 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-transparent">
         <div
           ref={(el) => {
-            if (isMobile) mobileTitleRef.current = el;
+            if (useSimpleAnimations) mobileTitleRef.current = el;
           }}
           className="max-w-7xl mx-auto text-center"
         >
           <h2
             ref={titleRef}
             className={`text-[12vw] md:text-[8vw] leading-[0.9] font-black text-white mb-8 tracking-tighter uppercase ${
-              isMobile ? 'mobile-animate-hidden' : ''
+              useSimpleAnimations ? 'mobile-animate-hidden' : ''
             } ${titleVisible ? 'mobile-animate-visible' : ''}`}
           >
             Discovery Archive
@@ -180,7 +178,7 @@ const HorizontalProjectsGSAP = () => {
           <p
             ref={subtitleRef}
             className={`text-lg md:text-xl text-gray-400 opacity-70 tracking-wide uppercase ${
-              isMobile ? 'mobile-animate-hidden' : ''
+              useSimpleAnimations ? 'mobile-animate-hidden' : ''
             } ${titleVisible ? 'mobile-animate-visible' : ''}`}
             style={titleVisible ? { transitionDelay: '0.2s' } : {}}
           >
@@ -190,16 +188,16 @@ const HorizontalProjectsGSAP = () => {
       </div>
 
       {/* Horizontal Scroll Container (Desktop) / Vertical Grid (Mobile) */}
-      <div className={isMobile ? 'mobile-projects-grid' : 'horizontal-scroll-wrapper'}>
+      <div className={useSimpleAnimations ? 'mobile-projects-grid' : 'horizontal-scroll-wrapper'}>
         <div
           ref={containerRef}
-          className={isMobile ? 'mobile-projects-container' : 'horizontal-scroll-container'}
+          className={useSimpleAnimations ? 'mobile-projects-container' : 'horizontal-scroll-container'}
           style={{
             display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? '2rem' : '4rem',
-            padding: isMobile ? '2rem' : '0 50vw 0 4rem',
-            alignItems: isMobile ? 'center' : 'center'
+            flexDirection: useSimpleAnimations ? 'column' : 'row',
+            gap: useSimpleAnimations ? '2rem' : '4rem',
+            padding: useSimpleAnimations ? '2rem' : '0 50vw 0 4rem',
+            alignItems: useSimpleAnimations ? 'center' : 'center'
           }}
         >
           {projects.map((project, index) => (
@@ -207,14 +205,14 @@ const HorizontalProjectsGSAP = () => {
               key={project.id}
               className="project-card group"
               style={{
-                minWidth: isMobile ? '100%' : 'clamp(600px, 60vw, 800px)',
-                maxWidth: isMobile ? '500px' : 'none',
-                height: isMobile ? 'auto' : '70vh',
+                minWidth: useSimpleAnimations ? '100%' : 'clamp(600px, 60vw, 800px)',
+                maxWidth: useSimpleAnimations ? '500px' : 'none',
+                height: useSimpleAnimations ? 'auto' : '70vh',
                 position: 'relative',
               }}
             >
               {/* Glass card with project content */}
-              <div className="relative w-full h-full rounded-3xl overflow-hidden border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-lg">
+              <div className="relative w-full h-full rounded-3xl overflow-hidden border border-white/10 bg-gradient-to-br from-white/5 to-transparent">
                 {/* Project Image */}
                 <div
                   className="project-image absolute inset-0 bg-gradient-to-br from-[#4a9eff]/20 to-[#7b61ff]/20"
@@ -305,7 +303,7 @@ const HorizontalProjectsGSAP = () => {
       </div>
 
       {/* Progress Bar (Desktop only) */}
-      {!isMobile && (
+      {!useSimpleAnimations && (
         <div className="fixed bottom-12 left-1/2 transform -translate-x-1/2 w-64 h-1 bg-white/10 rounded-full z-30">
           <div
             ref={progressBarRef}
@@ -316,7 +314,7 @@ const HorizontalProjectsGSAP = () => {
       )}
 
       {/* Scroll hint (Desktop only) */}
-      {!isMobile && (
+      {!useSimpleAnimations && (
         <div className="fixed bottom-12 right-12 z-30 flex items-center gap-3 text-white/40 font-['JetBrains_Mono'] text-xs uppercase tracking-wider">
           <span>Scroll</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="animate-bounce">

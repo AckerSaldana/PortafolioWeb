@@ -241,7 +241,9 @@ const Projects = () => {
       <div className="fixed inset-0 bg-black z-[1]" />
 
       {/* Terminal Scanline Effect */}
-      <div className="terminal-scanline" />
+      <div className="terminal-active">
+        <div className="terminal-scanline" />
+      </div>
 
       {/* Content */}
       <motion.div 

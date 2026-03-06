@@ -5,9 +5,10 @@ import { scrollTo } from './SmoothScroll';
 import useDevicePerformance from '../hooks/useDevicePerformance';
 
 const HeroGSAP = () => {
-  const { performance, isMobile } = useDevicePerformance();
+  const { performance, isMobile, isSafari } = useDevicePerformance();
+  const useSimpleAnimations = isMobile || isSafari;
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [showArrow, setShowArrow] = useState(true);
+  const showArrowRef = useRef(true);
   const [currentRole, setCurrentRole] = useState(0);
 
   // Refs for animation targets
@@ -81,12 +82,12 @@ const HeroGSAP = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Scroll arrow visibility
+  // Scroll arrow visibility — no React state, animate directly
   useEffect(() => {
     const handleScroll = () => {
       const shouldShow = window.scrollY < 50;
-      if (shouldShow !== showArrow) {
-        setShowArrow(shouldShow);
+      if (shouldShow !== showArrowRef.current) {
+        showArrowRef.current = shouldShow;
         if (arrowRef.current) {
           gsap.to(arrowRef.current, {
             opacity: shouldShow ? 1 : 0,
@@ -99,7 +100,7 @@ const HeroGSAP = () => {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll, { passive: true });
-  }, [showArrow]);
+  }, []);
 
   // Character-by-character name reveal
   useEffect(() => {
@@ -113,8 +114,7 @@ const HeroGSAP = () => {
 
     // MOBILE OPTIMIZATION: Use pure CSS transitions (best performance, no blur)
     // Avoid JavaScript animations on mobile - they can cause text rendering issues
-    if (isMobile) {
-      console.log('[HeroGSAP] Mobile detected - using CSS transitions for best quality');
+    if (useSimpleAnimations) {
 
       // CRITICAL: Clear any GSAP-set styles that might have been applied
       if (nameRef.current) gsap.set(nameRef.current, { clearProps: 'all' });
@@ -164,7 +164,6 @@ const HeroGSAP = () => {
       opacity: 0,
       scale: isLowPerformance ? 1.05 : 1.1,
       y: isLowPerformance ? 20 : 40,
-      filter: isLowPerformance ? 'blur(0px)' : 'blur(20px)',
     });
 
     gsap.set(greetingRef.current, {
@@ -175,7 +174,6 @@ const HeroGSAP = () => {
     gsap.set([roleRef.current, descriptionRef.current], {
       opacity: 0,
       y: isLowPerformance ? 20 : 40,
-      filter: isLowPerformance ? 'blur(0px)' : 'blur(8px)',
     });
 
     gsap.set(buttonsRef.current.children || [], {
@@ -199,7 +197,6 @@ const HeroGSAP = () => {
       opacity: 1,
       scale: 1,
       y: 0,
-      filter: 'blur(0px)',
       duration: isLowPerformance ? 0.8 : 1.4,
       ease: isLowPerformance ? 'power3.out' : 'power4.out',
     });
@@ -216,7 +213,6 @@ const HeroGSAP = () => {
     tl.to(roleRef.current, {
       opacity: 1,
       y: 0,
-      filter: 'blur(0px)',
       duration: isLowPerformance ? 0.5 : 0.8,
       ease: 'power3.out',
     }, '-=0.3');
@@ -225,7 +221,6 @@ const HeroGSAP = () => {
     tl.to(descriptionRef.current, {
       opacity: 1,
       y: 0,
-      filter: 'blur(0px)',
       duration: isLowPerformance ? 0.5 : 0.8,
       ease: 'power2.out',
     }, '-=0.4');
@@ -264,7 +259,7 @@ const HeroGSAP = () => {
     return () => {
       tl.kill();
     };
-  }, [performance, isMobile]);
+  }, [performance, useSimpleAnimations]);
 
   // Pre-create glitch layers once (performance optimization)
   useEffect(() => {
@@ -500,12 +495,12 @@ const HeroGSAP = () => {
         {/* Greeting */}
         <h2
           ref={greetingRef}
-          className={`text-sm md:text-base font-['JetBrains_Mono'] text-[#4a9eff] mb-6 md:mb-8 tracking-[0.25em] uppercase font-medium text-center md:text-left ${isMobile ? 'hero-mobile-hidden' : ''}`}
+          className={`text-sm md:text-base font-['JetBrains_Mono'] text-[#4a9eff] mb-6 md:mb-8 tracking-[0.25em] uppercase font-medium text-center md:text-left ${useSimpleAnimations ? 'hero-mobile-hidden' : ''}`}
           style={{
             textRendering: 'optimizeLegibility',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
-            ...(isMobile ? {} : { willChange: 'transform, opacity' })
+            ...(useSimpleAnimations ? {} : { willChange: 'transform, opacity' })
           }}
         >
           {'<'} Hello, I'm {'/>'}
@@ -514,14 +509,14 @@ const HeroGSAP = () => {
         {/* Name - CLEAN BOLD TYPOGRAPHY */}
         <h1
           ref={nameRef}
-          className={`text-[clamp(4rem,15vw,12rem)] font-black leading-[0.9] tracking-[-0.04em] mb-12 md:mb-16 text-center md:text-left ${isMobile ? 'hero-mobile-hidden' : ''}`}
+          className={`text-[clamp(4rem,15vw,12rem)] font-black leading-[0.9] tracking-[-0.04em] mb-12 md:mb-16 text-center md:text-left ${useSimpleAnimations ? 'hero-mobile-hidden' : ''}`}
           style={{
             fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
             color: '#ffffff',
             textRendering: 'optimizeLegibility',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
-            ...(isMobile ? {} : { willChange: 'transform, opacity, filter' })
+            ...(useSimpleAnimations ? {} : { willChange: 'transform, opacity, filter' })
           }}
         >
           <span className="block">Acker</span>
@@ -544,12 +539,12 @@ const HeroGSAP = () => {
 
           <p
             ref={roleRef}
-            className={`text-2xl md:text-3xl lg:text-4xl text-[#e0e0e0] font-['Inter'] font-medium md:ml-6 relative ${isMobile ? 'hero-mobile-hidden' : ''}`}
+            className={`text-2xl md:text-3xl lg:text-4xl text-[#e0e0e0] font-['Inter'] font-medium md:ml-6 relative ${useSimpleAnimations ? 'hero-mobile-hidden' : ''}`}
             style={{
               textRendering: 'optimizeLegibility',
               WebkitFontSmoothing: 'antialiased',
               MozOsxFontSmoothing: 'grayscale',
-              ...(isMobile ? {} : { willChange: 'transform, opacity, filter' })
+              ...(useSimpleAnimations ? {} : { willChange: 'transform, opacity, filter' })
             }}
           >
             {roles[currentRole]}
@@ -559,12 +554,12 @@ const HeroGSAP = () => {
         {/* Description with larger text */}
         <p
           ref={descriptionRef}
-          className={`text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto md:mx-0 mb-16 md:mb-20 leading-relaxed text-center md:text-left ${isMobile ? 'hero-mobile-hidden' : ''}`}
+          className={`text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto md:mx-0 mb-16 md:mb-20 leading-relaxed text-center md:text-left ${useSimpleAnimations ? 'hero-mobile-hidden' : ''}`}
           style={{
             textRendering: 'optimizeLegibility',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
-            ...(isMobile ? {} : { willChange: 'transform, opacity, filter' })
+            ...(useSimpleAnimations ? {} : { willChange: 'transform, opacity, filter' })
           }}
         >
           Crafting <span className="text-[#4a9eff] font-semibold">elegant solutions</span> to complex problems.
@@ -579,7 +574,7 @@ const HeroGSAP = () => {
         >
           <button
             ref={(el) => (magneticRefs.current[0] = el)}
-            className={`cursor-target group relative px-10 py-4 bg-[#4a9eff] text-[#0a0a0a] font-bold text-lg rounded-xl overflow-hidden mobile-btn-press mobile-touch-ripple ${isMobile ? 'hero-mobile-hidden' : ''}`}
+            className={`cursor-target group relative px-10 py-4 bg-[#4a9eff] text-[#0a0a0a] font-bold text-lg rounded-xl overflow-hidden mobile-btn-press mobile-touch-ripple ${useSimpleAnimations ? 'hero-mobile-hidden' : ''}`}
             onMouseEnter={(e) => !isMobile && handleButtonHover(e, true)}
             onMouseLeave={(e) => !isMobile && handleButtonHover(e, false)}
             onMouseDown={(e) => {
@@ -608,7 +603,7 @@ const HeroGSAP = () => {
 
           <button
             ref={(el) => (magneticRefs.current[1] = el)}
-            className={`cursor-target group relative px-10 py-4 border-2 border-[#4a9eff] text-[#4a9eff] font-bold text-lg rounded-xl overflow-hidden mobile-btn-press mobile-touch-ripple ${isMobile ? 'hero-mobile-hidden' : ''}`}
+            className={`cursor-target group relative px-10 py-4 border-2 border-[#4a9eff] text-[#4a9eff] font-bold text-lg rounded-xl overflow-hidden mobile-btn-press mobile-touch-ripple ${useSimpleAnimations ? 'hero-mobile-hidden' : ''}`}
             onMouseEnter={(e) => !isMobile && handleButtonHover(e, true)}
             onMouseLeave={(e) => !isMobile && handleButtonHover(e, false)}
             onMouseDown={(e) => {
@@ -635,7 +630,7 @@ const HeroGSAP = () => {
       {/* Enhanced scroll arrow */}
       <div
         ref={arrowRef}
-        className={`absolute bottom-12 left-0 right-0 flex flex-col items-center gap-3 mx-auto ${isMobile ? 'hero-mobile-hidden' : ''}`}
+        className={`absolute bottom-12 left-0 right-0 flex flex-col items-center gap-3 mx-auto ${useSimpleAnimations ? 'hero-mobile-hidden' : ''}`}
         style={{ width: 'fit-content' }}
       >
         <span className="text-gray-400 text-xs font-['JetBrains_Mono'] uppercase tracking-[0.2em] opacity-60">

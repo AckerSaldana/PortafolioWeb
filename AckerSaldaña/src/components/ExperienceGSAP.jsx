@@ -6,7 +6,8 @@ import useDevicePerformance from '../hooks/useDevicePerformance';
 import useMobileScrollAnimation, { useMobileStaggerAnimation } from '../hooks/useMobileScrollAnimation';
 
 const ExperienceGSAP = () => {
-  const { performance, isMobile } = useDevicePerformance();
+  const { performance, isMobile, isSafari } = useDevicePerformance();
+  const useSimpleAnimations = isMobile || isSafari;
 
   // MOBILE OPTIMIZATION: Use IntersectionObserver instead of ScrollTrigger (30-40% gain)
   const { ref: mobileTitleRef, isVisible: titleVisible } = useMobileScrollAnimation({
@@ -67,9 +68,8 @@ const ExperienceGSAP = () => {
 
     // MOBILE OPTIMIZATION: Skip ALL GSAP ScrollTrigger animations on mobile (30-40% performance gain)
     // Use IntersectionObserver + CSS transitions instead
-    if (isMobile) {
-      console.log('[ExperienceGSAP] Mobile detected - using CSS animations instead of GSAP ScrollTrigger');
-      // Ensure all elements are visible on mobile (clear any GSAP opacity: 0)
+    if (useSimpleAnimations) {
+      // Ensure all elements are visible (clear any GSAP opacity: 0)
       if (titleRef.current) gsap.set(titleRef.current, { clearProps: 'all' });
       if (subtitleRef.current) gsap.set(subtitleRef.current, { clearProps: 'all' });
       if (timelineProgressRef.current) gsap.set(timelineProgressRef.current, { clearProps: 'all' });
@@ -211,7 +211,7 @@ const ExperienceGSAP = () => {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [performance, isMobile]);
+  }, [performance, useSimpleAnimations]);
 
   return (
     <section
@@ -222,7 +222,7 @@ const ExperienceGSAP = () => {
       {/* Title Section */}
       <div
         ref={(el) => {
-          if (isMobile) mobileTitleRef.current = el;
+          if (useSimpleAnimations) mobileTitleRef.current = el;
         }}
         className="mb-24 md:mb-32 text-center max-w-7xl mx-auto"
       >
@@ -244,7 +244,7 @@ const ExperienceGSAP = () => {
       <div
         ref={(el) => {
           timelineLineRef.current = el;
-          if (isMobile) mobileTimelineRef.current = el;
+          if (useSimpleAnimations) mobileTimelineRef.current = el;
         }}
         className="hidden md:block absolute left-1/2 transform -translate-x-1/2 w-[2px] bg-white/10"
         style={{ top: '500px', bottom: '100px' }}
@@ -263,13 +263,13 @@ const ExperienceGSAP = () => {
       {/* Timeline Items */}
       <div
         ref={(el) => {
-          if (isMobile) mobileItemsRef.current = el;
+          if (useSimpleAnimations) mobileItemsRef.current = el;
         }}
         className="relative max-w-7xl mx-auto"
       >
         {experiences.map((exp, index) => {
           const isEven = index % 2 === 0;
-          const isItemVisible = isMobile ? visibleIndexes.has(index) : true;
+          const isItemVisible = useSimpleAnimations ? visibleIndexes.has(index) : true;
 
           return (
             <div
@@ -285,7 +285,7 @@ const ExperienceGSAP = () => {
                 className={`w-full md:w-1/2 px-4 md:px-12 ${
                   isEven ? 'text-left md:text-right order-2 md:order-1' : 'text-left order-2'
                 }`}
-                style={isMobile ? {} : { opacity: 0 }}
+                style={useSimpleAnimations ? {} : { opacity: 0 }}
               >
                 <span className="text-sm font-['JetBrains_Mono'] mb-4 block tracking-wider" style={{ color: exp.color }}>
                   {exp.number} // {exp.tag}
@@ -311,13 +311,13 @@ const ExperienceGSAP = () => {
                 <div
                   ref={(el) => (imagesRef.current[index] = el)}
                   className="relative w-full aspect-[4/5] overflow-hidden rounded-sm"
-                  style={isMobile ? {} : { clipPath: 'inset(0 0 100% 0)' }}
+                  style={useSimpleAnimations ? {} : { clipPath: 'inset(0 0 100% 0)' }}
                 >
                   <img
                     src={exp.image}
                     alt={exp.title}
                     className="w-full h-full object-cover cursor-target"
-                    style={isMobile ? {} : { transform: 'scale(1.4)' }}
+                    style={useSimpleAnimations ? {} : { transform: 'scale(1.4)' }}
                   />
                 </div>
               </div>

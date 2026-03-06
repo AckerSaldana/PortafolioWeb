@@ -134,7 +134,7 @@ const ProjectCardGSAP = ({ project, featured = false }) => {
   return (
     <div
       ref={cardRef}
-      className={`relative bg-black/90 backdrop-blur-md border-2 border-[#333333] overflow-hidden font-['JetBrains_Mono'] group h-full flex flex-col transition-all ${
+      className={`relative bg-black/95 border-2 border-[#333333] overflow-hidden font-['JetBrains_Mono'] group h-full flex flex-col transition-all ${
         featured ? 'min-h-[500px]' : 'min-h-[400px]'
       }`}
       style={{

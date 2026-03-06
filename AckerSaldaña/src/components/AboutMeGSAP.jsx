@@ -8,7 +8,8 @@ import useDevicePerformance from '../hooks/useDevicePerformance';
 import useMobileScrollAnimation, { useMobileStaggerAnimation } from '../hooks/useMobileScrollAnimation';
 
 const AboutMeGSAP = () => {
-  const { performance, isMobile } = useDevicePerformance();
+  const { performance, isMobile, isSafari } = useDevicePerformance();
+  const useSimpleAnimations = isMobile || isSafari;
 
   // MOBILE OPTIMIZATION: Use IntersectionObserver instead of ScrollTrigger (30-40% gain)
   const { ref: mobileTitleRef, isVisible: titleVisible } = useMobileScrollAnimation({
@@ -52,18 +53,14 @@ const AboutMeGSAP = () => {
 
   // Debug contentVisible state on mobile
   useEffect(() => {
-    if (isMobile) {
-      console.log('[AboutMeGSAP] Mobile detected');
-      console.log('[AboutMeGSAP] contentVisible:', contentVisible);
-      console.log('[AboutMeGSAP] mobileContentRef.current:', mobileContentRef.current);
-      console.log('[AboutMeGSAP] paragraphsRef.current:', paragraphsRef.current);
+    if (useSimpleAnimations) {
+      console.log('[AboutMeGSAP] Simple animations mode (mobile or Safari)');
     }
-  }, [contentVisible, isMobile, mobileContentRef, paragraphsRef]);
+  }, [contentVisible, useSimpleAnimations, mobileContentRef, paragraphsRef]);
 
   // Parallax effect - DISABLED on mobile for performance (Phase 4)
   useEffect(() => {
-    if (!sectionRef.current || isMobile) {
-      console.log('[AboutMeGSAP] Parallax disabled on mobile for performance');
+    if (!sectionRef.current || useSimpleAnimations) {
       return;
     }
 
@@ -101,15 +98,13 @@ const AboutMeGSAP = () => {
         cancelAnimationFrame(rafId);
       }
     };
-  }, [isMobile]);
+  }, [useSimpleAnimations]);
 
   useEffect(() => {
     if (!sectionRef.current) return;
 
-    // MOBILE OPTIMIZATION: Skip ALL GSAP ScrollTrigger animations on mobile (30-40% performance gain)
-    // Use IntersectionObserver + CSS transitions instead
-    if (isMobile) {
-      console.log('[AboutMeGSAP] Mobile detected - using CSS animations instead of GSAP ScrollTrigger');
+    // Skip GSAP ScrollTrigger on mobile + Safari — use IntersectionObserver + CSS instead
+    if (useSimpleAnimations) {
       return;
     }
 
@@ -216,6 +211,7 @@ const AboutMeGSAP = () => {
         if (!stat) return;
 
         const counter = stat.querySelector('.stat-value');
+        if (!counter) return;
         const targetValue = parseInt(counter.textContent);
 
         gsap.fromTo(
@@ -237,7 +233,7 @@ const AboutMeGSAP = () => {
             },
             onStart: () => {
               // Animate counter
-              gsap.fromTo(
+              gsap.to(
                 { val: 0 },
                 {
                   val: targetValue,
@@ -305,7 +301,7 @@ const AboutMeGSAP = () => {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [performance, isMobile]);
+  }, [performance, useSimpleAnimations]);
 
   // Enhanced button hover animations
   const handleButtonHover = (e, isEntering) => {
@@ -356,7 +352,7 @@ const AboutMeGSAP = () => {
       <div className="max-w-[1600px] mx-auto w-full relative z-10">
         {/* Title Section - Enhanced spacing and size */}
         <div
-          ref={isMobile ? mobileTitleRef : null}
+          ref={useSimpleAnimations ? mobileTitleRef : null}
           className="mb-24 md:mb-32 text-center md:text-left"
         >
           <h2
@@ -381,10 +377,9 @@ const AboutMeGSAP = () => {
             <div
               ref={(el) => {
                 paragraphsRef.current = el;
-                if (isMobile) {
+                if (useSimpleAnimations) {
                   mobileContentRef.current = el;
                   mobileParagraphsRef.current = el;
-                  console.log('[AboutMeGSAP] Ref assigned:', el);
                 }
               }}
               className={`space-y-8 mobile-animate-hidden ${paragraphsVisible ? 'mobile-animate-visible' : ''}`}
@@ -443,11 +438,11 @@ const AboutMeGSAP = () => {
 
             {/* Stat Counters */}
             <div
-              ref={isMobile ? mobileStatsRef : null}
+              ref={useSimpleAnimations ? mobileStatsRef : null}
               className="grid grid-cols-3 gap-8 py-12"
             >
               {stats.map((stat, index) => {
-                const isStatVisible = isMobile ? statsVisible.has(index) : true;
+                const isStatVisible = useSimpleAnimations ? statsVisible.has(index) : true;
                 return (
                   <div
                     key={index}
@@ -517,9 +512,9 @@ const AboutMeGSAP = () => {
           <div
             ref={(el) => {
               codeDisplayRef.current = el;
-              if (isMobile && mobileCodeRef) mobileCodeRef.current = el;
+              if (useSimpleAnimations && mobileCodeRef) mobileCodeRef.current = el;
             }}
-            style={isMobile ? {
+            style={useSimpleAnimations ? {
               perspective: '1000px',
               opacity: codeVisible ? 1 : 0,
               transform: codeVisible ? 'translate3d(0, 0, 0)' : 'translate3d(30px, 0, 0)',

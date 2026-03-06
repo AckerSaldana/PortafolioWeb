@@ -20,43 +20,54 @@ const Navbar = () => {
   ];
 
   useEffect(() => {
-    let lastScrollY = window.scrollY;
-    
-    const handleScroll = () => {
+    let rafId = null;
+    let isScheduled = false;
+
+    const updateNavbar = () => {
       const currentScrollY = window.scrollY;
-      
+
       // Show navbar when scrolled down more than 100px or on projects page
       if (currentScrollY > 100 || isProjectsPage) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
       }
-      
+
       // Update active section based on scroll position (only on homepage)
       if (!isProjectsPage) {
         const sections = navItems.map(item => ({
           id: item.id,
           element: document.getElementById(item.id)
         })).filter(item => item.element);
-        
+
         const currentSection = sections.find(section => {
           const rect = section.element.getBoundingClientRect();
           return rect.top <= 100 && rect.bottom >= 100;
         });
-        
+
         if (currentSection) {
           setActiveSection(currentSection.id);
         }
       } else {
         setActiveSection('projects');
       }
-      
-      lastScrollY = currentScrollY;
+
+      isScheduled = false;
+    };
+
+    const handleScroll = () => {
+      if (!isScheduled) {
+        isScheduled = true;
+        rafId = requestAnimationFrame(updateNavbar);
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Check initial state
-    return () => window.removeEventListener('scroll', handleScroll, { passive: true });
+    updateNavbar(); // Check initial state
+    return () => {
+      window.removeEventListener('scroll', handleScroll, { passive: true });
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [isProjectsPage]);
 
   const scrollToSection = (sectionId, e) => {
@@ -149,7 +160,7 @@ const Navbar = () => {
             </div>
             
             {/* Main navbar container */}
-            <div className="relative bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl shadow-[#4a9eff]/10">
+            <div className="relative bg-[#0a0a0a]/85 border border-white/10 rounded-full shadow-2xl shadow-[#4a9eff]/10">
               <div className="px-8 py-3">
                 <div className="flex items-center justify-between">
                 {/* Logo/Name */}
@@ -230,7 +241,7 @@ const Navbar = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
-                  className="md:hidden absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a]/90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+                  className="md:hidden absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a]/95 rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
                 >
                   <div className="px-8 py-4 space-y-4">
                     {navItems.map((item) => (

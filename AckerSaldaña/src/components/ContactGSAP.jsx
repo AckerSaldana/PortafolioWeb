@@ -1,29 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SiGithub, SiLinkedin } from 'react-icons/si';
 import { HiOutlineMail, HiOutlineClipboardCopy } from 'react-icons/hi';
 import { BsSend } from 'react-icons/bs';
-import { customEases, durations } from '../utils/gsapConfig';
-import useDevicePerformance from '../hooks/useDevicePerformance';
-import useMobileScrollAnimation from '../hooks/useMobileScrollAnimation';
 
 const ContactGSAP = () => {
-  const { performance, isMobile } = useDevicePerformance();
-
-  // MOBILE OPTIMIZATION: Use IntersectionObserver instead of ScrollTrigger (30-40% gain)
-  const { ref: mobileTitleRef, isVisible: titleVisible } = useMobileScrollAnimation({
-    threshold: 0.3,
-    triggerOnce: true
-  });
-  const { ref: mobileFormRef, isVisible: formVisible } = useMobileScrollAnimation({
-    threshold: 0.2,
-    triggerOnce: true
-  });
-  const { ref: mobileContactRef, isVisible: contactVisible } = useMobileScrollAnimation({
-    threshold: 0.2,
-    triggerOnce: true
-  });
 
   const sectionRef = useRef(null);
   const titleRef = useRef(null);
@@ -268,96 +249,9 @@ const ContactGSAP = () => {
     { name: 'LinkedIn', icon: SiLinkedin, href: 'https://www.linkedin.com/in/acker-saldaña-452351318/', color: '#0077B5' },
   ];
 
-  // Scroll animations
-  useEffect(() => {
-    if (!sectionRef.current) return;
-
-    // MOBILE OPTIMIZATION: Skip ALL GSAP ScrollTrigger animations on mobile (30-40% performance gain)
-    // Use IntersectionObserver + CSS transitions instead
-    if (isMobile) {
-      console.log('[ContactGSAP] Mobile detected - using CSS animations instead of GSAP ScrollTrigger');
-      return;
-    }
-
-    const ctx = gsap.context(() => {
-      const isLowPerformance = performance === 'low';
-
-      // Title animation - faster on mobile
-      if (titleRef.current) {
-        gsap.fromTo(
-          titleRef.current,
-          { opacity: 0, y: isLowPerformance ? 30 : 60 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: isLowPerformance ? 0.8 : 1.2,
-            ease: isLowPerformance ? 'power3.out' : 'power4.out',
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 70%',
-              toggleActions: 'play none none reverse',
-            },
-          }
-        );
-      }
-
-      // Subtitle - faster on mobile
-      if (subtitleRef.current) {
-        gsap.fromTo(
-          subtitleRef.current,
-          { opacity: 0, y: isLowPerformance ? 20 : 30 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: isLowPerformance ? 0.6 : 1,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 70%',
-            },
-            delay: isLowPerformance ? 0.1 : 0.2,
-          }
-        );
-      }
-
-      // Form reveal - faster on mobile
-      gsap.fromTo(
-        formRef.current,
-        { opacity: 0, y: isLowPerformance ? 30 : 60 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: isLowPerformance ? 0.6 : 1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: formRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none reverse',
-          },
-        }
-      );
-
-      // Contact info reveal - faster on mobile
-      gsap.fromTo(
-        contactInfoRef.current,
-        { opacity: 0, y: isLowPerformance ? 30 : 60 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: isLowPerformance ? 0.6 : 1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: contactInfoRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none reverse',
-          },
-          delay: isLowPerformance ? 0.1 : 0.2,
-        }
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, [performance, isMobile]);
+  // NOTE: Entrance animations removed — Contact is at the bottom of the scaler wrapper
+  // where ScrollTrigger and IntersectionObserver positions are unreliable.
+  // The section is always visible, which is more reliable than a broken entrance animation.
 
   return (
     <section
@@ -423,7 +317,7 @@ const ContactGSAP = () => {
 
           {/* Transmission status display */}
           <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
-            <div className="bg-black/90 backdrop-blur-xl px-8 py-6 rounded-2xl border-2 border-[#4a9eff] shadow-[0_0_50px_rgba(74,158,255,0.6)]">
+            <div className="bg-black/95 px-8 py-6 rounded-2xl border-2 border-[#4a9eff] shadow-[0_0_50px_rgba(74,158,255,0.6)]">
               <div className="flex items-center gap-4">
                 <div className="w-3 h-3 bg-[#4a9eff] rounded-full animate-pulse shadow-[0_0_15px_rgba(74,158,255,0.8)]" />
                 <p className="text-[#4a9eff] font-['JetBrains_Mono'] text-lg font-bold tracking-wider animate-pulse">
@@ -442,7 +336,7 @@ const ContactGSAP = () => {
           className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center"
         >
           {/* Backdrop with blur */}
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-black/60" />
 
           {/* Success content */}
           <div className="relative z-10 text-center px-8">
@@ -494,31 +388,16 @@ const ContactGSAP = () => {
 
       <div className="max-w-7xl mx-auto w-full">
         {/* Title Section */}
-        <div
-          ref={(el) => {
-            if (isMobile) mobileTitleRef.current = el;
-          }}
-          className="mb-12 md:mb-16 text-center"
-        >
+        <div className="mb-12 md:mb-16 text-center">
           <h2
             ref={titleRef}
             className="text-[12vw] md:text-[8vw] leading-[0.9] font-black text-white mb-8 tracking-tighter uppercase"
-            style={isMobile ? {
-              opacity: titleVisible ? 1 : 0,
-              transform: titleVisible ? 'translateY(0)' : 'translateY(30px)',
-              transition: 'opacity 0.8s ease-out, transform 0.8s ease-out'
-            } : {}}
           >
             Connect
           </h2>
           <p
             ref={subtitleRef}
             className="text-lg md:text-xl text-gray-400 opacity-70 tracking-wide uppercase"
-            style={isMobile ? {
-              opacity: titleVisible ? 1 : 0,
-              transform: titleVisible ? 'translateY(0)' : 'translateY(20px)',
-              transition: 'opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s'
-            } : {}}
           >
             Let's build something extraordinary
           </p>
@@ -527,15 +406,7 @@ const ContactGSAP = () => {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Contact Form - Minimalist Design */}
           <div
-            ref={(el) => {
-              formRef.current = el;
-              if (isMobile) mobileFormRef.current = el;
-            }}
-            style={isMobile ? {
-              opacity: formVisible ? 1 : 0,
-              transform: formVisible ? 'translateY(0)' : 'translateY(30px)',
-              transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
-            } : {}}
+            ref={formRef}
           >
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Name Field */}
@@ -660,16 +531,8 @@ const ContactGSAP = () => {
 
           {/* Contact Info - Clean Cards */}
           <div
-            ref={(el) => {
-              contactInfoRef.current = el;
-              if (isMobile) mobileContactRef.current = el;
-            }}
+            ref={contactInfoRef}
             className="space-y-6"
-            style={isMobile ? {
-              opacity: contactVisible ? 1 : 0,
-              transform: contactVisible ? 'translateY(0)' : 'translateY(30px)',
-              transition: 'opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s'
-            } : {}}
           >
             {/* Email Card */}
             <div className="group p-8 bg-gradient-to-br from-white/5 to-transparent rounded-2xl border border-white/10 hover:border-[#4a9eff]/50 transition-all duration-300">

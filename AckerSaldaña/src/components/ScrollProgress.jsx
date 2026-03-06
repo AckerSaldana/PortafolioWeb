@@ -15,13 +15,15 @@ export default function ScrollProgress() {
       return;
     }
 
+    let progressTween = null;
+
     // Small delay to ensure DOM is ready
     const timeoutId = setTimeout(() => {
       if (!progressRef.current) return;
 
       try {
         // Create scroll-linked progress animation
-        const progressTween = gsap.to(progressRef.current, {
+        progressTween = gsap.to(progressRef.current, {
           scaleX: 1,
           ease: 'none',
           scrollTrigger: {
@@ -32,28 +34,18 @@ export default function ScrollProgress() {
             invalidateOnRefresh: true,
           },
         });
-
-        // Store the timeline for cleanup
-        return () => {
-          if (progressTween) {
-            progressTween.kill();
-          }
-        };
       } catch (error) {
         console.error('[ScrollProgress] Error creating animation:', error);
       }
     }, 100);
 
-    // Cleanup
+    // Cleanup — only kill our own tween/trigger
     return () => {
       clearTimeout(timeoutId);
-      // Clean up ScrollTriggers more carefully
-      const triggers = ScrollTrigger.getAll();
-      triggers.forEach(trigger => {
-        if (trigger.vars?.trigger === document.body) {
-          trigger.kill();
-        }
-      });
+      if (progressTween) {
+        progressTween.scrollTrigger?.kill();
+        progressTween.kill();
+      }
     };
   }, []);
 

@@ -11,7 +11,14 @@
       "Bash(npm run lint -- --format compact)",
       "Bash(npx eslint src/components/DesktopOS.jsx src/components/Window.jsx src/components/os/*.jsx src/components/OSCursor.jsx src/hooks/useKeyboardShortcuts.js src/utils/win11Theme.js)",
       "Bash(npx eslint src/components/DesktopOS.jsx src/components/Window.jsx src/components/os/*.jsx --quiet)",
-      "Bash(npx eslint src/components/SettingsWindow.jsx src/components/DesktopOS.jsx)"
+      "Bash(npx eslint src/components/SettingsWindow.jsx src/components/DesktopOS.jsx)",
+      "Bash(cwebp -q 85 \"/Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/public/LogoNoBackground.png\" -o \"/Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/public/LogoNoBackground.webp\")",
+      "Bash(cwebp -q 85 \"/Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/public/Logo2.png\" -o \"/Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/public/Logo2.webp\")",
+      "Bash(npx eslint src/App.jsx)",
+      "Bash(npx eslint src/components/AboutMeGSAP.jsx src/components/HeroGSAP.jsx src/components/Navbar.jsx src/components/ContactGSAP.jsx src/components/ProjectCardGSAP.jsx src/components/HorizontalProjectsGSAP.jsx src/pages/Projects.jsx)",
+      "Bash(grep -n \"scrollTrigger\" /Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/src/components/*.jsx)",
+      "Bash(grep -n \"scrollTrigger\\\\|ScrollTrigger.create\" /Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/src/components/*.jsx /Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/src/pages/*.jsx)",
+      "Bash(grep -n \"scrub:\" /Users/ackersal/Downloads/Development/Web/PortafolioWeb/AckerSaldaña/src/components/*.jsx)"
     ],
     "deny": [],
     "ask": []

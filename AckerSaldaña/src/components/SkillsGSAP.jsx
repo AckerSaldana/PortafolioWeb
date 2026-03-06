@@ -22,7 +22,8 @@ import useMobileScrollAnimation, { useMobileStaggerAnimation, useMobileProgressA
 gsap.registerPlugin(ScrollTrigger);
 
 const SkillsGSAP = memo(function SkillsGSAP() {
-  const { performance, isMobile } = useDevicePerformance();
+  const { performance, isMobile, isSafari } = useDevicePerformance();
+  const useSimpleAnimations = isMobile || isSafari;
 
   // MOBILE OPTIMIZATION: Use IntersectionObserver instead of ScrollTrigger (30-40% gain)
   const { ref: mobileTitleRef, isVisible: titleVisible } = useMobileScrollAnimation({
@@ -59,8 +60,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
 
   // Parallax effect - DISABLED on mobile for performance (Phase 4)
   useEffect(() => {
-    if (!sectionRef.current || isMobile) {
-      console.log('[SkillsGSAP] Parallax disabled on mobile for performance');
+    if (!sectionRef.current || useSimpleAnimations) {
       return;
     }
 
@@ -100,7 +100,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
         cancelAnimationFrame(rafId);
       }
     };
-  }, [isMobile]);
+  }, [useSimpleAnimations]);
 
   // 3D Tilt & Magnetic hover effect for skill cards - RAF optimized
   useEffect(() => {
@@ -134,9 +134,11 @@ const SkillsGSAP = memo(function SkillsGSAP() {
     // Initial rect calculation
     updateCardRects();
 
-    // Update rects on scroll/resize (layout changes)
+    // Update rects on scroll/resize (layout changes) — debounced to avoid layout thrashing
+    let layoutTimeout = null;
     const handleLayoutChange = () => {
-      updateCardRects();
+      clearTimeout(layoutTimeout);
+      layoutTimeout = setTimeout(updateCardRects, 200);
     };
 
     const updateMagneticEffect = (timestamp) => {
@@ -223,6 +225,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
       if (rafId) {
         cancelAnimationFrame(rafId);
       }
+      clearTimeout(layoutTimeout);
       cardRectsCache.clear();
     };
   }, []);
@@ -352,8 +355,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
 
     // MOBILE OPTIMIZATION: Skip ALL GSAP ScrollTrigger animations on mobile (30-40% performance gain)
     // Use IntersectionObserver + CSS transitions instead
-    if (isMobile) {
-      console.log('[SkillsGSAP] Mobile detected - using CSS animations instead of GSAP ScrollTrigger');
+    if (useSimpleAnimations) {
       return;
     }
 
@@ -434,7 +436,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [performance, isMobile]);
+  }, [performance, useSimpleAnimations]);
 
   return (
     <section
@@ -449,8 +451,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
           ref={(el) => (parallaxElementsRef.current[0] = el)}
           className="absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full opacity-10"
           style={{
-            background: 'radial-gradient(circle, rgba(74, 158, 255, 0.8), transparent 60%)',
-            filter: 'blur(100px)',
+            background: 'radial-gradient(circle, rgba(74, 158, 255, 0.5), transparent 45%)',
           }}
         />
         {/* Large gradient orb 2 */}
@@ -458,8 +459,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
           ref={(el) => (parallaxElementsRef.current[1] = el)}
           className="absolute bottom-1/3 left-1/4 w-[500px] h-[500px] rounded-full opacity-10"
           style={{
-            background: 'radial-gradient(circle, rgba(123, 97, 255, 0.8), transparent 60%)',
-            filter: 'blur(100px)',
+            background: 'radial-gradient(circle, rgba(123, 97, 255, 0.5), transparent 45%)',
           }}
         />
         {/* Accent orb 3 */}
@@ -467,8 +467,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
           ref={(el) => (parallaxElementsRef.current[2] = el)}
           className="absolute top-1/2 left-1/2 w-[400px] h-[400px] rounded-full opacity-10"
           style={{
-            background: 'radial-gradient(circle, rgba(247, 223, 30, 0.6), transparent 60%)',
-            filter: 'blur(90px)',
+            background: 'radial-gradient(circle, rgba(247, 223, 30, 0.4), transparent 45%)',
           }}
         />
       </div>
@@ -477,7 +476,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
         {/* Premium Title Section */}
         <div
           ref={(el) => {
-            if (isMobile) mobileTitleRef.current = el;
+            if (useSimpleAnimations) mobileTitleRef.current = el;
           }}
           className="mb-20 md:mb-28 text-center"
         >
@@ -499,7 +498,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
         {/* Premium Bento Grid Layout */}
         <div
           ref={(el) => {
-            if (isMobile) mobileCardsRef.current = el;
+            if (useSimpleAnimations) mobileCardsRef.current = el;
           }}
           className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6"
         >
@@ -514,7 +513,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
               return '';
             };
 
-            const isCardVisible = isMobile ? cardsVisible.has(index) : true;
+            const isCardVisible = useSimpleAnimations ? cardsVisible.has(index) : true;
 
             return (
               <div
@@ -530,7 +529,6 @@ const SkillsGSAP = memo(function SkillsGSAP() {
                   className="relative h-full min-h-[180px] md:min-h-[200px] rounded-2xl overflow-hidden mobile-card-tap"
                   style={{
                     background: 'linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(15, 15, 15, 0.95) 100%)',
-                    backdropFilter: 'blur(20px)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
                   }}
@@ -552,8 +550,7 @@ const SkillsGSAP = memo(function SkillsGSAP() {
                   <div
                     className="card-glow absolute inset-0 rounded-2xl opacity-0 pointer-events-none"
                     style={{
-                      background: `radial-gradient(circle at 50% 50%, ${skill.color}80, ${skill.color}40 40%, transparent 70%)`,
-                      filter: 'blur(60px)',
+                      background: `radial-gradient(circle at 50% 50%, ${skill.color}60, ${skill.color}20 30%, transparent 50%)`,
                     }}
                   />
 

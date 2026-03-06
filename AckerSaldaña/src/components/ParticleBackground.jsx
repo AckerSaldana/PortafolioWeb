@@ -1,18 +1,23 @@
-import { useRef, useState, useEffect, Suspense, useMemo } from 'react';
-import { Canvas, useFrame, useLoader } from '@react-three/fiber';
-import { Points, PointMaterial, Sphere, Trail, useGLTF, Sparkles } from '@react-three/drei';
+import { useRef, useState, useEffect, Suspense, useMemo, createContext, useContext } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Points, PointMaterial, Sphere, Trail, useGLTF } from '@react-three/drei';
 import * as random from 'maath/random/dist/maath-random.esm';
 import * as THREE from 'three';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import useBreakpoint from '../hooks/useBreakpoint';
 import useDevicePerformance from '../hooks/useDevicePerformance';
 
+// Shared scroll context to avoid duplicate ScrollTrigger instances
+const ScrollProgressContext = createContext(null);
+
+// Cached color constants to avoid per-render allocations
+const TRAIL_COLOR = new THREE.Color('#ffffff');
+
 function Stars({ particleCount = 3000 }) {
   const meshRef = useRef();
   const { isMobile } = useBreakpoint();
+  const scrollData = useContext(ScrollProgressContext);
 
   // Memoize sphere generation so it only happens once on mount
   const sphere = useMemo(() => random.inSphere(new Float32Array(particleCount), { radius: 1.5 }), [particleCount]);
@@ -33,8 +38,6 @@ function Stars({ particleCount = 3000 }) {
     rotationZ: Math.PI / 4,
     currentSpeed: 1,
     targetSpeed: 1,
-    scrollSpeed: 0, // Additional speed from scroll
-    scrollProgress: 0, // Overall scroll progress
   });
 
   useEffect(() => {
@@ -54,41 +57,31 @@ function Stars({ particleCount = 3000 }) {
       animationState.current.targetSpeed = 1;
     };
 
-    // GSAP ScrollTrigger for scroll-based effects
-    const scrollTrigger = ScrollTrigger.create({
-      trigger: document.body,
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: 1,
-      onUpdate: (self) => {
-        // Update scroll progress (0 to 1)
-        animationState.current.scrollProgress = self.progress;
-
-        // Calculate scroll speed influence (velocity of scroll)
-        const velocity = self.getVelocity();
-        animationState.current.scrollSpeed = Math.abs(velocity) / 2000; // Normalize
-      },
-    });
-
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
-      scrollTrigger.kill();
     };
   }, []);
 
   useFrame((state, delta) => {
     if (!meshRef.current) return;
 
+    // Read scroll data from shared context
+    const scrollSpeed = scrollData ? scrollData.current.speed : 0;
+    const scrollProgress = scrollData ? scrollData.current.progress : 0;
+    const isScrolling = scrollData ? scrollData.current.isScrolling : false;
+
+    frameCountRef.current++;
+
     // Smooth speed interpolation
     const speedDiff = animationState.current.targetSpeed - animationState.current.currentSpeed;
     animationState.current.currentSpeed += speedDiff * 0.08;
 
     // Combine user interaction speed with scroll speed
-    const totalSpeed = animationState.current.currentSpeed + animationState.current.scrollSpeed;
+    const totalSpeed = animationState.current.currentSpeed + scrollSpeed;
 
     // Update rotation values based on total speed
     const rotationDeltaX = delta * 0.05 * totalSpeed;
@@ -102,20 +95,19 @@ function Stars({ particleCount = 3000 }) {
     meshRef.current.rotation.y = animationState.current.rotationY;
     meshRef.current.rotation.z = animationState.current.rotationZ;
 
-    // Throttle color updates on mobile (every 3 frames) - iPhone performance optimization
-    frameCountRef.current++;
-    const shouldUpdateColor = !isMobile || frameCountRef.current % 3 === 0;
-
-    if (shouldUpdateColor) {
-      // Color shift based on scroll progress (subtle) - reuse color object for performance
-      const scrollProgress = animationState.current.scrollProgress;
-      const hue = 200 + scrollProgress * 40; // Shift from blue (200) to cyan (240)
-      colorRef.current.setHSL(hue / 360, 1, 0.65);
-
-      if (meshRef.current.material && meshRef.current.material.color) {
-        meshRef.current.material.color.copy(colorRef.current);
+    // Skip color updates during scroll — imperceptible while content moves
+    if (!isScrolling) {
+      const shouldUpdateColor = !isMobile || frameCountRef.current % 3 === 0;
+      if (shouldUpdateColor) {
+        const hue = 200 + scrollProgress * 40;
+        colorRef.current.setHSL(hue / 360, 1, 0.65);
+        if (meshRef.current.material && meshRef.current.material.color) {
+          meshRef.current.material.color.copy(colorRef.current);
+        }
       }
     }
+
+    state.invalidate();
   });
 
   return (
@@ -191,7 +183,7 @@ function Planet({ position, radius, color, orbitRadius, orbitSpeed, type = 'rock
 
   return (
     <group ref={meshRef} position={position}>
-      <Sphere args={[radius, 64, 32]}>
+      <Sphere args={[radius, 32, 16]}>
         {getMaterial()}
       </Sphere>
       
@@ -235,7 +227,7 @@ function RealisticPlanet({ position, orbitRadius, orbitSpeed }) {
   return (
     <group ref={groupRef} position={position}>
       {/* Planet surface */}
-      <Sphere ref={planetRef} args={[0.12, 64, 32]}>
+      <Sphere ref={planetRef} args={[0.12, 32, 16]}>
         <meshPhongMaterial
           color="#2e5090"
           emissive="#112244"
@@ -268,79 +260,18 @@ function RealisticPlanet({ position, orbitRadius, orbitSpeed }) {
   );
 }
 
-// Component to load OBJ models with MTL
-function OBJPlanet({ objPath, mtlPath, position, scale = 1, orbitRadius, orbitSpeed }) {
-  const materials = useLoader(MTLLoader, mtlPath);
-  const obj = useLoader(OBJLoader, objPath, (loader) => {
-    materials.preload();
-    loader.setMaterials(materials);
-  });
-  
-  const groupRef = useRef();
-  const orbitAngle = useRef(Math.random() * Math.PI * 2);
-
-  // Apply better material properties on mount
-  useEffect(() => {
-    if (obj) {
-      obj.traverse((child) => {
-        if (child.isMesh) {
-          // Make sure materials are visible
-          if (child.material) {
-            child.material.side = THREE.DoubleSide;
-            child.castShadow = true;
-            child.receiveShadow = true;
-          }
-        }
-      });
-    }
-  }, [obj]);
-
-  useFrame((state, delta) => {
-    if (!groupRef.current) return;
-    
-    // Orbit animation
-    orbitAngle.current += delta * orbitSpeed;
-    
-    groupRef.current.position.x = position[0] + Math.cos(orbitAngle.current) * orbitRadius;
-    groupRef.current.position.z = position[2] + Math.sin(orbitAngle.current) * orbitRadius;
-    groupRef.current.position.y = position[1] + Math.sin(orbitAngle.current * 0.5) * 0.1;
-    
-    // Rotation
-    groupRef.current.rotation.y += delta * 0.1;
-  });
-
-  return (
-    <group ref={groupRef} position={position} scale={scale}>
-      <primitive object={obj} />
-    </group>
-  );
-}
-
-// Component to load GLTF/GLB models (more common for 3D models)
+// Component to load GLTF/GLB models
 function GLTFPlanet({ modelPath, position, scale = 1, orbitRadius, orbitSpeed, initialAngle = 0 }) {
   const { scene } = useGLTF(modelPath);
   const groupRef = useRef();
   const planetRef = useRef();
   const orbitAngle = useRef(initialAngle);
-  const scrollOffset = useRef({ y: 0, progress: 0 });
-
-  // Track scroll progress for parallax
-  useEffect(() => {
-    const scrollTrigger = ScrollTrigger.create({
-      trigger: document.body,
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: 1,
-      onUpdate: (self) => {
-        scrollOffset.current.progress = self.progress;
-      },
-    });
-
-    return () => scrollTrigger.kill();
-  }, []);
+  const scrollProgress = useContext(ScrollProgressContext);
 
   useFrame((state, delta) => {
     if (!groupRef.current) return;
+
+    const isScrolling = scrollProgress ? scrollProgress.current.isScrolling : false;
 
     // Orbit animation - smooth elliptical orbit
     orbitAngle.current += delta * orbitSpeed;
@@ -349,20 +280,26 @@ function GLTFPlanet({ modelPath, position, scale = 1, orbitRadius, orbitSpeed, i
     const ellipseX = orbitRadius;
     const ellipseZ = orbitRadius * 0.8; // Slightly elliptical
 
-    // Calculate parallax offset based on depth (z-position)
-    const depth = Math.abs(position[2]); // Depth from camera
-    const parallaxStrength = depth * 0.2; // Farther = more parallax
-    const parallaxY = (scrollOffset.current.progress - 0.5) * parallaxStrength;
+    // Skip parallax calculation during scroll — imperceptible while content moves
+    let parallaxY = 0;
+    if (!isScrolling) {
+      const depth = Math.abs(position[2]);
+      const parallaxStrength = depth * 0.2;
+      const progress = scrollProgress ? scrollProgress.current.progress : 0;
+      parallaxY = (progress - 0.5) * parallaxStrength;
+    }
 
     groupRef.current.position.x = position[0] + Math.cos(orbitAngle.current) * ellipseX;
     groupRef.current.position.z = position[2] + Math.sin(orbitAngle.current) * ellipseZ;
     groupRef.current.position.y =
-      position[1] + Math.sin(orbitAngle.current * 2) * 0.05 + parallaxY; // Add parallax
+      position[1] + Math.sin(orbitAngle.current * 2) * 0.05 + parallaxY;
 
     // Planet rotation on its own axis
     if (planetRef.current) {
       planetRef.current.rotation.y += delta * 0.5;
     }
+
+    state.invalidate();
   });
 
   return (
@@ -382,6 +319,7 @@ function Comet({ delay = 3000 }) {
   const outerGlowRef = useRef();
   const [isActive, setIsActive] = useState(false);
   const [showTrail, setShowTrail] = useState(false);
+  const timersRef = useRef([]);
   
   // Generate random starting position - more centered to screen
   const generateStartPosition = () => {
@@ -469,17 +407,22 @@ function Comet({ delay = 3000 }) {
       }
       setIsActive(true);
       // Enable trail after comet has moved away from start position
-      setTimeout(() => {
+      const trailTimer = setTimeout(() => {
         setShowTrail(true);
-      }, 500); // Increased delay to ensure comet has moved
+      }, 500);
+      timersRef.current.push(trailTimer);
     }, delay + Math.random() * 2000);
-    
-    return () => clearTimeout(timer);
+    timersRef.current.push(timer);
+
+    return () => {
+      timersRef.current.forEach(t => clearTimeout(t));
+      timersRef.current = [];
+    };
   }, [delay]);
 
   useFrame((state, delta) => {
     if (!groupRef.current || !isActive) return;
-    
+
     // Update time
     cometData.current.time += delta;
     const time = cometData.current.time;
@@ -539,15 +482,20 @@ function Comet({ delay = 3000 }) {
       setShowTrail(false);
       
       // Reset after timer
-      setTimeout(() => {
+      const resetTimer = setTimeout(() => {
         initializeComet();
         setIsActive(true);
         // Enable trail after positioning
-        setTimeout(() => {
+        const trailTimer = setTimeout(() => {
           setShowTrail(true);
         }, 100);
+        timersRef.current.push(trailTimer);
       }, (Math.random() * 8 + 3) * 1000);
+      timersRef.current.push(resetTimer);
     }
+
+    // Request next frame (frameloop="demand")
+    state.invalidate();
   });
 
   // Don't render until active
@@ -560,7 +508,7 @@ function Comet({ delay = 3000 }) {
         <Trail
           width={4}
           length={7}
-          color={new THREE.Color('#ffffff')}
+          color={TRAIL_COLOR}
           attenuation={(width) => width}
           target={groupRef}
         />
@@ -606,25 +554,60 @@ function Comet({ delay = 3000 }) {
   );
 }
 
+// Shared scroll provider — one ScrollTrigger for stars + all planets
+// Also tracks isScrolling flag so useFrame hooks can throttle during scroll
+function SharedScrollProvider({ children }) {
+  const scrollData = useRef({ progress: 0, speed: 0, isScrolling: false });
+
+  useEffect(() => {
+    let scrollIdleTimer = null;
+
+    const scrollTrigger = ScrollTrigger.create({
+      trigger: document.body,
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: (self) => {
+        scrollData.current.progress = self.progress;
+        scrollData.current.speed = Math.abs(self.getVelocity()) / 2000;
+        scrollData.current.isScrolling = true;
+
+        // Clear previous idle timer and set new one
+        clearTimeout(scrollIdleTimer);
+        scrollIdleTimer = setTimeout(() => {
+          scrollData.current.isScrolling = false;
+        }, 150);
+      },
+    });
+    return () => {
+      scrollTrigger.kill();
+      clearTimeout(scrollIdleTimer);
+    };
+  }, []);
+
+  return (
+    <ScrollProgressContext.Provider value={scrollData}>
+      {children}
+    </ScrollProgressContext.Provider>
+  );
+}
+
+// Safari detection — avoid MSAA overhead during scroll compositor stress
+const isSafari = typeof navigator !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
 const ParticleBackground = () => {
   const { performance, isMobile } = useDevicePerformance();
 
-  // Three.js experience for all devices
-  // Memoize counts to prevent recalculation on every render
-  // Use performance level for more granular control instead of breakpoints
   const particleCount = useMemo(() => {
     if (isMobile || performance === 'low') return 500;
     if (performance === 'medium') return 1500;
-    return 3000; // high performance desktop
+    return 3000;
   }, [isMobile, performance]);
 
   const cometCount = useMemo(() => {
     if (isMobile || performance === 'low') return 1;
     if (performance === 'medium') return 2;
-    return 4; // high performance desktop
+    return 4;
   }, [isMobile, performance]);
-
-  const showPlanets = useMemo(() => true, []);
 
   const planetCount = useMemo(() => {
     if (isMobile || performance === 'low') return 2;
@@ -632,90 +615,95 @@ const ParticleBackground = () => {
     return 4;
   }, [isMobile, performance]);
 
-  const useLighting = useMemo(() => true, []);
-
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none">
+    <div className="fixed inset-0 z-0 pointer-events-none" style={isSafari ? undefined : { transform: 'translateZ(0)' }}>
       <Canvas
         camera={{ position: [0, 0, 1] }}
-        style={{ pointerEvents: 'auto', background: 'transparent' }}
+        frameloop="demand"
+        style={{ pointerEvents: 'none', background: 'transparent' }}
         gl={{
           alpha: true,
-          antialias: !isMobile, // Disable antialiasing on mobile
-          powerPreference: isMobile ? 'low-power' : 'high-performance'
+          antialias: !isMobile && !isSafari,
+          powerPreference: isMobile ? 'low-power' : 'high-performance',
+          stencil: false,
         }}
-        dpr={isMobile ? [1, 1.5] : [1, 2]} // Limit pixel ratio on mobile
+        dpr={isMobile ? [1, 1.5] : [1, 1.5]}
       >
-        {/* Mejor iluminación para los planetas */}
         <color attach="background" args={['#0a0a0a']} />
         <ambientLight intensity={0.8} />
-        {useLighting && <pointLight position={[10, 10, 10]} intensity={1} />}
-        {useLighting && <pointLight position={[-10, -10, -10]} intensity={0.5} />}
-        {useLighting && <directionalLight position={[5, 5, 5]} intensity={0.8} />}
+        <pointLight position={[10, 10, 10]} intensity={1} />
+        <pointLight position={[-10, -10, -10]} intensity={0.5} />
+        <directionalLight position={[5, 5, 5]} intensity={0.8} />
 
+        <SharedScrollProvider>
         <Stars particleCount={particleCount} />
 
-        {/* Cometas con delays diferentes - responsive count */}
         {cometCount >= 1 && <Comet delay={1000} />}
         {cometCount >= 2 && <Comet delay={4000} />}
         {cometCount >= 3 && <Comet delay={7000} />}
         {cometCount >= 4 && <Comet delay={10000} />}
 
-        {/* Planetas más separados - only on capable devices */}
-        {showPlanets && planetCount >= 1 && (
-          <Suspense fallback={null}>
-            <GLTFPlanet
-              modelPath="/models/Planet_21.glb"
-              position={[1.5, 0.3, -2]}
-              scale={0.049}
-              orbitRadius={0.5}
-              orbitSpeed={0.4}
-              initialAngle={0}
-            />
-          </Suspense>
-        )}
+          {planetCount >= 1 && (
+            <Suspense fallback={null}>
+              <GLTFPlanet
+                modelPath="/models/Planet_21.glb"
+                position={[1.5, 0.3, -2]}
+                scale={0.049}
+                orbitRadius={0.5}
+                orbitSpeed={0.4}
+                initialAngle={0}
+              />
+            </Suspense>
+          )}
 
-        {showPlanets && planetCount >= 2 && (
-          <Suspense fallback={null}>
-            <GLTFPlanet
-              modelPath="/models/Planet_15.glb"
-              position={[-1.8, -0.2, -1.5]}
-              scale={0.010}
-              orbitRadius={0.4}
-              orbitSpeed={0.3}
-              initialAngle={Math.PI / 3}
-            />
-          </Suspense>
-        )}
+          {planetCount >= 2 && (
+            <Suspense fallback={null}>
+              <GLTFPlanet
+                modelPath="/models/Planet_15.glb"
+                position={[-1.8, -0.2, -1.5]}
+                scale={0.010}
+                orbitRadius={0.4}
+                orbitSpeed={0.3}
+                initialAngle={Math.PI / 3}
+              />
+            </Suspense>
+          )}
 
-        {showPlanets && planetCount >= 3 && (
-          <Suspense fallback={null}>
-            <GLTFPlanet
-              modelPath="/models/Planet_4.glb"
-              position={[0.5, -0.5, -2.5]}
-              scale={0.02}
-              orbitRadius={0.6}
-              orbitSpeed={0.15}
-              initialAngle={Math.PI * 2/3}
-            />
-          </Suspense>
-        )}
+          {planetCount >= 3 && (
+            <Suspense fallback={null}>
+              <GLTFPlanet
+                modelPath="/models/Planet_4.glb"
+                position={[0.5, -0.5, -2.5]}
+                scale={0.02}
+                orbitRadius={0.6}
+                orbitSpeed={0.15}
+                initialAngle={Math.PI * 2/3}
+              />
+            </Suspense>
+          )}
 
-        {showPlanets && planetCount >= 4 && (
-          <Suspense fallback={null}>
-            <GLTFPlanet
-              modelPath="/models/Planet_42.glb"
-              position={[-0.8, 0.6, -3]}
-              scale={0.013}
-              orbitRadius={0.7}
-              orbitSpeed={0.1}
-              initialAngle={Math.PI * 4/3}
-            />
-          </Suspense>
-        )}
+          {planetCount >= 4 && (
+            <Suspense fallback={null}>
+              <GLTFPlanet
+                modelPath="/models/Planet_42.glb"
+                position={[-0.8, 0.6, -3]}
+                scale={0.013}
+                orbitRadius={0.7}
+                orbitSpeed={0.1}
+                initialAngle={Math.PI * 4/3}
+              />
+            </Suspense>
+          )}
+        </SharedScrollProvider>
       </Canvas>
     </div>
   );
 };
+
+// Preload GLB models so they start fetching before components mount
+useGLTF.preload('/models/Planet_21.glb');
+useGLTF.preload('/models/Planet_15.glb');
+useGLTF.preload('/models/Planet_4.glb');
+useGLTF.preload('/models/Planet_42.glb');
 
 export default ParticleBackground;

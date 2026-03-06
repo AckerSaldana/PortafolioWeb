@@ -20,17 +20,25 @@ export default function SmoothScroll({ children }) {
 
     const isMobile = isIOS || isAndroid || isMacOSWithTouch || isTouchDevice;
 
-    // Skip Lenis initialization on mobile devices for 40-60% performance improvement
-    if (isMobile) {
-      console.log('[SmoothScroll] Mobile/Touch device detected - using native scrolling for optimal performance');
-      return;
+    // Safari detection — Safari has its own native momentum scrolling that conflicts
+    // with Lenis, creating a "double scroll" effect and severe lag
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    // Skip Lenis on mobile and Safari — both have excellent native scrolling
+    if (isMobile || isSafari) {
+      if (isSafari && !isMobile) {
+        document.body.classList.add('safari-scroll-mode');
+      }
+      gsap.ticker.lagSmoothing(0);
+      return () => {
+        document.body.classList.remove('safari-scroll-mode');
+      };
     }
 
     try {
-      // Initialize Lenis with optimal settings for smooth scrolling (Desktop only)
       lenisRef.current = new Lenis({
         duration: 1.2,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Custom easing for premium feel
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         orientation: 'vertical',
         gestureOrientation: 'vertical',
         smoothWheel: true,
@@ -41,7 +49,6 @@ export default function SmoothScroll({ children }) {
         autoResize: true,
       });
 
-      // Integrate Lenis with GSAP ScrollTrigger using scrollerProxy
       lenisRef.current.on('scroll', ScrollTrigger.update);
 
       gsap.ticker.add((time) => {

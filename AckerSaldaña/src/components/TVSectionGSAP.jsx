@@ -7,7 +7,8 @@ import useDevicePerformance from '../hooks/useDevicePerformance';
 import useMobileScrollAnimation from '../hooks/useMobileScrollAnimation';
 
 const TVSectionGSAP = () => {
-  const { performance, isMobile } = useDevicePerformance();
+  const { performance, isMobile, isSafari } = useDevicePerformance();
+  const useSimpleAnimations = isMobile || isSafari;
 
   // MOBILE OPTIMIZATION: Use IntersectionObserver instead of ScrollTrigger (30-40% gain)
   const { ref: mobileTitleRef, isVisible: titleVisible } = useMobileScrollAnimation({
@@ -27,8 +28,7 @@ const TVSectionGSAP = () => {
 
   // Parallax effect - DISABLED on mobile for performance (Phase 4)
   useEffect(() => {
-    if (!sectionRef.current || isMobile) {
-      console.log('[TVSectionGSAP] Parallax disabled on mobile for performance');
+    if (!sectionRef.current || useSimpleAnimations) {
       return;
     }
 
@@ -66,15 +66,14 @@ const TVSectionGSAP = () => {
         cancelAnimationFrame(rafId);
       }
     };
-  }, [isMobile]);
+  }, [useSimpleAnimations]);
 
   useEffect(() => {
     if (!sectionRef.current) return;
 
     // MOBILE OPTIMIZATION: Skip ALL GSAP ScrollTrigger animations on mobile (30-40% performance gain)
     // Use IntersectionObserver + CSS transitions instead
-    if (isMobile) {
-      console.log('[TVSectionGSAP] Mobile detected - using CSS animations instead of GSAP ScrollTrigger');
+    if (useSimpleAnimations) {
       return;
     }
 
@@ -153,7 +152,7 @@ const TVSectionGSAP = () => {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [performance, isMobile]);
+  }, [performance, useSimpleAnimations]);
 
   return (
     <section
@@ -185,7 +184,7 @@ const TVSectionGSAP = () => {
         {/* Title Section - Clean & Consistent */}
         <div
           ref={(el) => {
-            if (isMobile) mobileTitleRef.current = el;
+            if (useSimpleAnimations) mobileTitleRef.current = el;
           }}
           className="mb-20 md:mb-28 text-center"
         >
@@ -232,7 +231,7 @@ const TVSectionGSAP = () => {
           <div
             ref={(el) => {
               tvRef.current = el;
-              if (isMobile) mobileTVRef.current = el;
+              if (useSimpleAnimations) mobileTVRef.current = el;
             }}
             style={tvVisible ? { perspective: '2000px', transitionDelay: '0.2s' } : { perspective: '2000px' }}
             className={`relative z-10 mobile-animate-hidden ${tvVisible ? 'mobile-animate-visible' : ''}`}
